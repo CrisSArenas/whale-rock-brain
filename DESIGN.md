@@ -18,9 +18,10 @@ This is the design document for the Whale Rock Brain. It covers the rubric quest
 10. [Evaluation, both built and planned](#10-evaluation-both-built-and-planned)
 11. [Cost and latency](#11-cost-and-latency)
 12. [Per-ticker fan-out, and the path from 9 to 200 tickers](#12-per-ticker-fan-out-and-the-path-from-9-to-200-tickers)
-13. [Risks](#13-risks)
-14. [Roadmap](#14-roadmap)
-15. [Build vs. buy](#15-build-vs-buy)
+13. [Deployment](#13-deployment)
+14. [Risks](#14-risks)
+15. [Roadmap](#15-roadmap)
+16. [Build vs. buy](#16-build-vs-buy)
 
 ---
 
@@ -584,7 +585,75 @@ This is a roadmap item. I didn't build it because the case study has 6 sources a
 
 ---
 
-## 13. Risks
+## 13. Deployment
+
+The system runs locally with `python run_api.py`. For production it goes into a container, runs on a managed cloud service, and reads or writes snapshots from cloud object storage instead of local disk. Two paths cover most cases: AWS and Azure. The architecture is identical between them, only the service names change.
+
+### Container
+
+The included Dockerfile builds a single image that runs the dashboard on port 8000:
+
+```bash
+docker build -t whale-rock-brain .
+docker run --rm -p 8000:8000 --env-file .env whale-rock-brain
+```
+
+Image size is roughly 250 MB on the Python 3.11 slim base. Cold start is around 4 seconds (Pydantic + FastAPI bootstrap). Memory footprint is steady at ~200 MB for a single-ticker workload, scaling roughly linearly with the number of items held in process during a refresh.
+
+### AWS path
+
+The minimum viable production layout on AWS is five services, plus an optional sixth:
+
+* **Compute: App Runner** for the dashboard (or **ECS Fargate behind ALB** if VPC peering or finer network control is required). App Runner handles auto-scale, TLS, and health checks with zero config; the container ships from ECR. Estimated cost: $25 to $40 per month at idle, scaling with traffic.
+* **Schedule: EventBridge** firing a **Lambda** or **Fargate task** that calls `refresh_ticker(ticker, time_window)` per ticker. Different cadences per source group: hourly cron for Reddit / News / X, every 6 hours for HN and GitHub, daily for EDGAR. Lambda is sufficient as long as a single ticker refresh fits inside the 15-minute Lambda execution window, which it does at current latency (60 to 90 seconds cold per ticker).
+* **Snapshots: S3.** Object storage for `data/snapshots/{TICKER}.json`. The `storage.py` module is the only application file that changes; the function signatures stay identical. S3 cost is negligible at the object count and size involved (cents per month).
+* **Secrets: Secrets Manager** for `ANTHROPIC_API_KEY`, `X_BEARER_TOKEN`, `GITHUB_TOKEN`. Rotation is handled by the service. The container reads them at startup via the standard SDK, no code changes from the local `.env` flow other than the lookup source.
+* **Logs and alerts: CloudWatch.** structlog already emits JSON when `LOG_JSON=true` is set, which CloudWatch ingests natively. Alarms wired to the source-failure log patterns (`source.fetch_failed`, `reddit.http_error`, etc.) surface ingestion regressions to the on-call before the dashboard does.
+* **Optional: DynamoDB** keyed on `(ticker, item_id)` once cross-refresh dedup graduates from per-id to content-hash (see Section 12). Adds maybe $5 per month at production scale.
+
+Total operating cost at production scope (200 tickers, daily warm refresh): roughly $40 in AWS infrastructure plus ~$240 in Anthropic spend. About $280 per month all-in.
+
+### Azure path
+
+Same architecture, different services:
+
+* **Compute: Container Apps** for the dashboard, with a second **Container Apps Job** on a timer trigger running the refresh. Container Apps Jobs are the closest Azure equivalent to "Lambda on a timer."
+* **Snapshots: Blob Storage.** Same one-line `storage.py` change as the AWS path.
+* **Secrets: Key Vault** with managed identity so the Container App reads keys without provisioning credentials.
+* **Logs and metrics: Application Insights** wired via OpenTelemetry, which is already compatible with structlog's JSON output.
+
+Total operating cost is comparable to AWS, slightly cheaper at small scale because Container Apps' per-second billing is friendlier than App Runner's minimum-instance pricing.
+
+### Why these services and not others
+
+* **Why App Runner / Container Apps and not ECS or AKS?** Both abstract the cluster away. The application has no need for cluster-level features (sidecars, mesh, custom networking). A lower-level orchestrator adds operational complexity without adding capability.
+* **Why S3 / Blob and not Postgres or DynamoDB for snapshots?** The access pattern is per-ticker read and per-ticker write. Object storage is the cheapest, simplest fit. A managed database only earns its place when cross-ticker queries become routine, which is a separate (later) trigger covered in Section 12.
+* **Why Lambda / Container Apps Jobs and not a long-running cron container?** Scheduled cron containers are cheaper at high tick frequencies but expensive operationally: monitoring them, restarting them, scaling them. Serverless triggers handle all of that. The 15-minute Lambda timeout is comfortable for current per-ticker latency.
+* **Why not Anthropic's hosted infrastructure?** It would also work and is the simplest deployment path if available. The AWS / Azure paths are documented because the brief explicitly listed them as the expected production targets.
+
+### What changes when deploying
+
+Three concrete code changes from the local layout:
+
+1. `storage.py` swaps `Path.read_text` and `Path.write_text` for the cloud SDK's get and put. The Pydantic shape and the function signatures are identical, so nothing upstream notices.
+2. `config.py` reads secrets from the cloud secret manager instead of `.env`. About a 10-line change, isolated to one module.
+3. The Anthropic API rate-limit tier should be sized for the production refresh cadence. Tier 2 (40K output tokens per minute) is comfortable for 200 tickers refreshed daily; Tier 1 starts to back-pressure above ~30 concurrent refreshes.
+
+The orchestrator, the API endpoints, the source modules, the Brain prompt, the connection judge, the chat handler, and the frontend do not change. The architecture was designed for this: the cloud move is config and infrastructure, not application logic.
+
+### Observability and alerting
+
+Three signals worth alarms in production:
+
+* **Source failure rate.** If a source's `failed:` status crosses, say, 20 percent of refreshes over an hour window, page someone. The most common root cause is upstream API change or rate-limit threshold change.
+* **Brain validation failure rate.** The repair loop fires occasionally by design. If it fires on more than 15 percent of refreshes, the prompt is drifting and needs review.
+* **Anthropic spend.** Daily cost dashboard with a hard alert at 1.5x expected. Cost regressions usually mean a source is suddenly returning more items than expected, or the dedup is broken.
+
+All three are derivable from the existing structlog output. None require additional instrumentation.
+
+---
+
+## 14. Risks
 
 ### Hallucinated connections
 
@@ -620,7 +689,7 @@ The system is hard-bound to Sonnet 4.6 today. Switching to a different LLM provi
 
 ---
 
-## 14. Roadmap
+## 15. Roadmap
 
 In rough priority order, with rationale:
 
@@ -637,7 +706,7 @@ In rough priority order, with rationale:
 
 ---
 
-## 15. Build vs. buy
+## 16. Build vs. buy
 
 AlphaSense, Sentieo, and Tegus sit in adjacent space. AlphaSense in particular does sell-side and corporate document search far better than this dashboard does. They have the corpus, the licensing, the entity resolution, and the years of indexing investment. This Brain can't compete with that.
 
