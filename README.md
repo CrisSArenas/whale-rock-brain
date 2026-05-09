@@ -16,7 +16,7 @@ You type a ticker. The system pulls fresh material from six places (Reddit, indu
 1. [What this is, in one paragraph](#what-this-is-in-one-paragraph)
 2. [Why this exists](#why-this-exists)
 3. [Run it on your laptop](#run-it-on-your-laptop)
-4. [The tickers we ship with](#the-tickers-we-ship-with)
+4. [The tickers I included](#the-tickers-i-included)
 5. [How to read the dashboard](#how-to-read-the-dashboard)
 6. [The sources, plainly](#the-sources-plainly)
 7. [Print or save as PDF](#print-or-save-as-pdf)
@@ -75,7 +75,7 @@ That's it. No cloud setup, no database to install, no other keys to chase down. 
 
 ---
 
-## The tickers we ship with
+## The tickers I included
 
 The dropdown at the top of the page is split into two groups:
 
@@ -166,7 +166,7 @@ Six sources. Each one captures something the others don't.
 
 **SEC EDGAR.** The grounding source. Latest 8-K, 10-Q, 10-K, Form 4, 13F filings. This is the truth set: every other source is opinion, EDGAR is what the company actually told the SEC. EDGAR always returns the most recent filings regardless of what time window you pick.
 
-**What we left out, and why.** Glassdoor and Levels.fyi would be excellent for catching layoffs and sales reorganizations early, but they don't have a free API. To use them in production we'd license a vendor feed (Revelio Labs, Thinknum). App Store and Play Store reviews need licensed wrappers (Sensor Tower, data.ai). Podcast transcripts would need a Whisper transcription pipeline running separately. All three are listed as next steps. Stack Overflow we tried and dropped: developer Q&A volume has fallen as people moved to AI assistants and Discord, and the signal that's left mostly duplicates GitHub.
+**What I left out, and why.** Glassdoor and Levels.fyi would be excellent for catching layoffs and sales reorganizations early, but they don't have a free API. To use them in production I'd license a vendor feed (Revelio Labs, Thinknum). App Store and Play Store reviews need licensed wrappers (Sensor Tower, data.ai). Podcast transcripts would need a Whisper transcription pipeline running separately. All three are listed as next steps. Stack Overflow I tried and dropped: developer Q&A volume has fallen as people moved to AI assistants and Discord, and the signal that's left mostly duplicates GitHub.
 
 ---
 
@@ -331,3 +331,5 @@ In either case, the only file you'd change in the codebase is `storage.py`, swap
 **Can I run this against a private list of tickers?** Yes. Add them to `data/tickers.json`. Nothing in the dashboard or the pipeline cares which tickers are in the file.
 
 **What if the Brain finds nothing interesting?** It tells you. The headline will say something like "Limited material, mostly press releases and tangential mentions." The confidence pill will be Low. The system is built to admit when the data is thin, not to pad a summary to feel productive.
+
+**Where do I send feedback?** This was built for the Whale Rock case study. The DESIGN.md doc covers the technical reasoning for every choice. Comments and PRs welcome.

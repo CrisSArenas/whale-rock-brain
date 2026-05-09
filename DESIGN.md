@@ -30,25 +30,25 @@ The brief is explicit: three sources done well beats eight done badly. The syste
 
 ### The six sources, with rationale
 
-**Reddit.** Subreddit-aware search across stock subs and product/operator subs. The relevant subreddits are configured per ticker in `data/tickers.json`. For AMD that means r/AMD_Stock and r/buildapc. For FROG it's r/devops and r/kubernetes. For KVYO it's r/shopify and r/ecommerce. The reason we configure subs per ticker rather than searching globally is precision. A global Reddit search for "AMD" pulls anti-money-laundering threads, alcohol and music discussions, and a hundred other false positives. Constraining to known-relevant subs trades a bit of recall for a lot of precision, which is the right trade for a buy-side dashboard where false positives are more costly than missed coverage.
+**Reddit.** Subreddit-aware search across stock subs and product/operator subs. The relevant subreddits are configured per ticker in `data/tickers.json`. For AMD that means r/AMD_Stock and r/buildapc. For FROG it's r/devops and r/kubernetes. For KVYO it's r/shopify and r/ecommerce. The reason I configure subs per ticker rather than searching globally is precision. A global Reddit search for "AMD" pulls anti-money-laundering threads, alcohol and music discussions, and a hundred other false positives. Constraining to known-relevant subs trades a bit of recall for a lot of precision, which is the right trade for a buy-side dashboard where false positives are more costly than missed coverage.
 
-The Reddit endpoint we use is the public `.json` API. We send a browser-class User-Agent string, because Reddit fingerprints generic Python clients and returns 403. We pace the per-subreddit calls 600 milliseconds apart, because the unauthenticated tier is rate limited. We also drop posts at the source level if they have no comments, no upvote score, and an empty body, because those are almost always automod-stuff or noise.
+The Reddit endpoint I use is the public `.json` API. I send a browser-class User-Agent string, because Reddit fingerprints generic Python clients and returns 403. I pace the per-subreddit calls 600 milliseconds apart, because the unauthenticated tier is rate limited. I also drop posts at the source level if they have no comments, no upvote score, and an empty body, because those are almost always automod-stuff or noise.
 
-**Industry News.** Aggregated trade publications via Google News' free RSS endpoint. The brief specifically calls out "niche industry rags" as a target source, and Google News' free aggregation surfaces exactly those: SemiAnalysis-class technical blogs, channel-specific coverage, foreign press, and trade publications that Bloomberg buckets together as "Other." The query is per-ticker (defined in `data/tickers.json`) and returns a 60+ item RSS feed. We filter client-side by `pubDate` against the requested time window because Google News' `when:` operator returned zero results in testing, while a plain query without `when:` returned 60. We learned this empirically and switched to client-side filtering.
+**Industry News.** Aggregated trade publications via Google News' free RSS endpoint. The brief specifically calls out "niche industry rags" as a target source, and Google News' free aggregation surfaces exactly those: SemiAnalysis-class technical blogs, channel-specific coverage, foreign press, and trade publications that Bloomberg buckets together as "Other." The query is per-ticker (defined in `data/tickers.json`) and returns a 60+ item RSS feed. Time-window filtering is done client-side against `pubDate` rather than via Google News' `when:` operator, which is unreliable on the public RSS path.
 
-**GitHub.** Recent issues and releases for the company's top repos, plus a global issue search for product mentions in third-party repositories. This is the operational signal that's hardest to fake. Companies cannot hide their release cadence, their public bug reports, or the fact that Big Customer Co just opened an issue against their SDK. For tech-heavy names (FROG via jfrog/artifactory, KVYO via klaviyo SDKs, AMD via ROCm, MDB via mongodb) this captures the build/operate signal that leads enterprise revenue by 2 to 3 quarters. An optional `GITHUB_TOKEN` raises the rate limit from 60 per hour to 5,000 per hour. We drop closed issues with zero comments and an empty body because those are bot-closed staleness.
+**GitHub.** Recent issues and releases for the company's top repos, plus a global issue search for product mentions in third-party repositories. This is the operational signal that's hardest to fake. Companies cannot hide their release cadence, their public bug reports, or the fact that Big Customer Co just opened an issue against their SDK. For tech-heavy names (FROG via jfrog/artifactory, KVYO via klaviyo SDKs, AMD via ROCm, MDB via mongodb) this captures the build/operate signal that leads enterprise revenue by 2 to 3 quarters. An optional `GITHUB_TOKEN` raises the rate limit from 60 per hour to 5,000 per hour. I drop closed issues with zero comments and an empty body because those are bot-closed staleness.
 
 **Hacker News.** The Algolia public search API, full-text across stories and comments. HN is where TMT narratives crystallize early. Founder commentary, infrastructure post-mortems, "we just migrated from X to Y" threads. The valuable and non-obvious thing about HN is timing: a thoughtful HN top-comment about a product is often two or three quarters ahead of when the same opinion shows up in a sell-side note.
 
-There's an implementation gotcha with HN's Algolia API that took some debugging. The `query` parameter does not support boolean OR. If you send `query="JFrog" OR "Artifactory"`, Algolia treats `OR` as a literal word and AND-matches every term, returning zero hits. The fix is to use `query=JFrog` (the most distinctive single term) and pass `optionalWords=Artifactory FROG` as a separate parameter, which lets Algolia treat the additional aliases as boost terms but not requirements. We discovered this empirically.
+One non-obvious constraint on HN's Algolia API: the `query` parameter does not support boolean OR. Passing `query="JFrog" OR "Artifactory"` causes Algolia to treat `OR` as a literal word and AND-match every term, which returns zero hits. The implementation uses `query=JFrog` (the most distinctive single term) plus `optionalWords=Artifactory FROG` as a separate parameter, so the additional aliases boost ranking without becoming required match terms.
 
 **X (Twitter).** The v2 `/tweets/search/recent` endpoint. This is the only paid source, because X has no free tier suitable for the volume this needs. Basic at $200 per month gets 10,000 tweets monthly, which covers about 10 tickers refreshed hourly. Pro at $5,000 per month gets the full archive. Outside the case study budget, but the integration is built and ready: set `X_BEARER_TOKEN` and the column populates.
 
-The valuable thing about X is real-time sentiment with author weighting. A tweet from a 200,000-follower analyst account is qualitatively different from a tweet from a 50-follower meme account, even if they say the same words. We pull up to 50 tweets per refresh and run a regex-based pre-filter that drops obvious FOMO and pump content (more on that in Section 6) before any LLM call. Verified or 50K-plus follower accounts bypass the filter, because a serious analyst saying "$200 target" is signal even if it shares vocabulary with retail noise.
+The valuable thing about X is real-time sentiment with author weighting. A tweet from a 200,000-follower analyst account is qualitatively different from a tweet from a 50-follower meme account, even if they say the same words. I pull up to 50 tweets per refresh and run a regex-based pre-filter that drops obvious FOMO and pump content (more on that in Section 6) before any LLM call. Verified or 50K-plus follower accounts bypass the filter, because a serious analyst saying "$200 target" is signal even if it shares vocabulary with retail noise.
 
-**SEC EDGAR.** The submissions JSON API. Recent 8-K, 10-Q, 10-K, Form 4, and 13F filings. The CIK is resolved dynamically from `company_tickers.json` so we don't hardcode CIKs. EDGAR plays a different role from the other five sources: it's the authoritative anchor. Every other source is unstructured opinion from someone with an agenda. EDGAR is what the company actually told the SEC. The Brain Summary is built to compare softer signals against this anchor. Critically, EDGAR ignores the user's time window setting and always returns the most recent filings. The reasoning: the analyst always wants the latest 10-Q, regardless of whether they're studying the last month or the last year of alt-data.
+**SEC EDGAR.** The submissions JSON API. Recent 8-K, 10-Q, 10-K, Form 4, and 13F filings. The CIK is resolved dynamically from `company_tickers.json` so no CIKs are hardcoded. EDGAR plays a different role from the other five sources: it's the authoritative anchor. Every other source is unstructured opinion from someone with an agenda. EDGAR is what the company actually told the SEC. The Brain Summary is built to compare softer signals against this anchor. Critically, EDGAR ignores the user's time window setting and always returns the most recent filings. The reasoning: the analyst always wants the latest 10-Q, regardless of whether they're studying the last month or the last year of alt-data.
 
-### What we considered and rejected
+### What I considered and rejected
 
 **Twitter (free tier).** No free tier suitable for this. X's pricing forces the choice. Listed in the roadmap once a license is paid for.
 
@@ -58,9 +58,9 @@ The valuable thing about X is real-time sentiment with author weighting. A tweet
 
 **Podcast transcripts.** Transcribing earnings calls and ex-employee podcasts is high signal but cost-prohibitive at request time. The right architecture is a separate batch Whisper pipeline running offline, with the transcripts stored as an additional source the orchestrator queries. Out of scope for the case study, but the architecture supports it: it would be a `sources/podcast_source.py` module that reads from a transcripts table.
 
-**Stack Overflow.** We built it, tested it on the case study tickers, and dropped it. Stack Overflow's Q&A volume has fallen substantially as developer questions moved to LLM assistants and Discord. The signal that remains is largely duplicative of GitHub issues. The replacement was X, which captures a fundamentally different population.
+**Stack Overflow.** I built it, tested it on the case study tickers, and dropped it. Stack Overflow's Q&A volume has fallen substantially as developer questions moved to LLM assistants and Discord. The signal that remains is largely duplicative of GitHub issues. The replacement was X, which captures a fundamentally different population.
 
-**Stocktwits.** Tested. Their public stream API now returns 403 for non-authenticated requests, even with browser User-Agent strings. They've gated the public access. We could pay for it, but X covers the same population (active traders) with broader coverage, so we picked X over Stocktwits when the budget was forced.
+**Stocktwits.** Tested. Their public stream API now returns 403 for non-authenticated requests, even with browser User-Agent strings. They've gated the public access. I could pay for it, but X covers the same population (active traders) with broader coverage, so I picked X over Stocktwits when the budget was forced.
 
 **LinkedIn job postings.** A "company is hiring 20 customer retention specialists" signal would be valuable. LinkedIn has no public job listings API. Indeed deprecated theirs in 2023. Listed in roadmap as licensed-feed territory.
 
@@ -86,7 +86,7 @@ Each source honors a `time_window` parameter: 1 week, 1 month, 3 months, 6 month
 * Reddit uses its native `t=` bucket (week, month, year).
 * HN uses `numericFilters=created_at_i>cutoff` against a Unix timestamp.
 * GitHub issues use `since=` with an ISO timestamp.
-* X uses `start_time` (capped to 7 days for the Basic tier; we surface the cap in the status string).
+* X uses `start_time` (capped to 7 days for the Basic tier; the cap is surfaced in the status string).
 * Industry News filters client-side on `pubDate` because Google News' `when:` operator is unreliable.
 * EDGAR ignores the window and returns the most recent filings.
 
@@ -124,7 +124,7 @@ The brief specifically asks about this: "Source ingestion should not run inside 
 * If a source is down or rate-limited, the dashboard still shows the last known snapshot.
 * If a refresh is happening when the dashboard reads, no problem: the writer is `Path.write_text` which is atomic for small files, and the reader gets either the old version or the new version, never a torn read.
 
-In production we'd run the orchestrator on a schedule (EventBridge plus Lambda on AWS, Logic App plus Container Apps Job on Azure) and let the dashboard be a pure read-only service.
+In production I'd run the orchestrator on a schedule (EventBridge plus Lambda on AWS, Logic App plus Container Apps Job on Azure) and let the dashboard be a pure read-only service.
 
 ### What the dashboard never does
 
@@ -161,11 +161,11 @@ Three reasons:
 
 3. **Cloud portability.** The same shape works for S3, Blob Storage, or DynamoDB. Swapping `Path.write_text(json.dumps(...))` for `s3_client.put_object(...)` is a one-line change in `storage.py`. The orchestrator and the API don't need to know.
 
-When would we move to a real database? Three triggers:
+When would I move to a real database? Three triggers:
 
 * **Cross-ticker queries.** "Show me every ticker where Reddit sentiment turned negative this week." That requires an indexed columnar store.
 * **High concurrent write rate.** A scheduled refresh of 200 tickers all writing simultaneously is fine for files but starts to want WAL-style guarantees. DynamoDB or RDS would be more comfortable.
-* **Audit history.** Right now each refresh overwrites the previous snapshot. If we need a full audit trail (who ran which refresh when, what the previous Brain said), we'd write each refresh to a versioned record.
+* **Audit history.** Right now each refresh overwrites the previous snapshot. If a full audit trail is needed (who ran which refresh when, what the previous Brain said), I'd write each refresh to a versioned record.
 
 For 9 tickers in a case study, files are right.
 
@@ -182,7 +182,7 @@ Each item carries:
 Nine fields, all required by the validator:
 
 * `headline`, `narrative`, `whats_changing`, `bear_case`, `bull_case` (the original analytical sections).
-* `position_read`, `confidence`, `confidence_rationale` (the PM-actionable sections, added in v0.2).
+* `position_read`, `confidence`, `confidence_rationale` (the PM-actionable sections).
 * `watch_list`, `management_questions` (the next-action-item sections).
 * `cited_ids` (the deduped list of every source id cited anywhere, populated by the validator from the text).
 
@@ -198,9 +198,9 @@ Four fields per connection:
 
 ### Why preserve everything in the snapshot, even low-relevance items
 
-Earlier versions of the orchestrator filtered out low-relevance items at the snapshot level. We saw a real case (FROG) where 46 items were ingested and only 3 survived to the dashboard. The Brain Summary was good but the dashboard felt empty.
+A strict relevance filter at the snapshot level looks attractive but produces a brittle dashboard on thin-coverage names. FROG, for example, can produce 46 ingested items where only 3 score relevance >= 3 in a tight time window. The Brain Summary on those 3 items is fine; the dashboard underneath would feel empty, and the analyst loses the ability to scan the underlying material.
 
-The current design separates two concerns:
+The design separates two concerns:
 
 * **What the analyst sees.** All summarized items, sorted by source then relevance descending. The analyst can scan everything that came back, including the low-relevance items, with the right amount of visual de-emphasis.
 * **What the Brain synthesizes from.** The Brain prompt internally filters to relevance >= 3 (or relevance >= 1 for thin-coverage names where too few items clear the higher bar). This keeps the synthesis signal-heavy without hiding the underlying data from the analyst.
@@ -213,13 +213,13 @@ The exception: items the model flagged as `promotional` with relevance <= 2 are 
 
 The Brain Summary is the headline output. It's deliberately structured around a portfolio manager who is deciding whether to add to, hold, or trim a position. Generic LLM summaries do not do this. They tend to produce a topic-by-topic recap: "AMD launched a new GPU. JFrog announced a partnership. Klaviyo's CEO spoke at a conference." That structure is useless to a PM, because it doesn't connect the dots and it doesn't suggest action.
 
-Our structure has nine sections, in this order:
+The structure has nine sections, in this order:
 
 | Section | Question it answers |
 |---|---|
 | Headline | What's the one sentence I'd forward to my PM? |
 | Position read | What does this data argue for or against? |
-| Confidence | How sure are we, and why? |
+| Confidence | How sure is the system, and why? |
 | Narrative | What's the cross-source synthesis? |
 | What's changing | What's different since last time? |
 | What to watch | What future events would confirm or break the read? |
@@ -229,33 +229,33 @@ Our structure has nine sections, in this order:
 
 ### Why no buy/sell rating
 
-We deliberately do not produce "buy", "sell", or "hold" labels. The Position Read tells the PM what the data argues for or against, with citations, but the actual call stays with the PM. There are three reasons:
+I deliberately do not produce "buy", "sell", or "hold" labels. The Position Read tells the PM what the data argues for or against, with citations, but the actual call stays with the PM. There are three reasons:
 
-1. **We don't have the full picture.** The dashboard sees alt-data only. The PM also weighs the financial model, the macro view, position sizing, portfolio fit, and a dozen other things the system doesn't see. A "buy" rating from a system that only sees alt-data would be wrong by construction.
+1. **The system doesn't have the full picture.** The dashboard sees alt-data only. The PM also weighs the financial model, the macro view, position sizing, portfolio fit, and a dozen other things the system doesn't see. A "buy" rating from a system that only sees alt-data would be wrong by construction.
 2. **Cost asymmetry.** A confident wrong rating costs much more than a useful read with no rating. The Brain that says "this argues against adding here, evidence is thin on the AI thesis" is much more valuable than one that says "Sell" with the same data.
 3. **Regulatory caution.** A buy/sell rating from an automated system is a different category of output. Avoiding it sidesteps an entire conversation about compliance.
 
 ### Why the Position Read instead of just the narrative
 
-We tested an earlier version with just (headline, narrative, what's changing, bear, bull). The narrative was good but the PM had to read three paragraphs to figure out what to do with it. The Position Read is the "tl;dr for the next 30 seconds": this is what the data argues for or against. It sits between the headline and the narrative in the UI so it's the second thing the PM reads.
+A headline + narrative + bear/bull layout forces the PM to assemble the read themselves across three paragraphs. The Position Read does that assembly explicitly, in two or three sentences with citations. It is the "tl;dr for the next 30 seconds": what this data argues for or against. It sits between the headline and the narrative in the UI so it is the second thing the PM reads, not the seventh.
 
 ### Why scaling Management Questions to data depth
 
-Earlier versions always asked for exactly 5 questions. The result was that thin-coverage tickers (like SNDK, where the alt-data is genuinely sparse) got 5 generic questions ("how is the storage business?") and rich-coverage tickers (NVDA, MSFT) also got 5 because the model was asked for 5. Both buckets felt off.
+A fixed count of five questions across all tickers would mismatch the underlying data. Thin-coverage names (SNDK, where the alt-data is genuinely sparse) would produce filler questions ("how is the storage business?") to hit the count, while rich-coverage names (NVDA, MSFT) would have more substance than five slots can carry. Both buckets feel wrong: the thin one looks padded, the rich one looks shallow.
 
 The current prompt explicitly calibrates count to depth: 1 to 2 questions for thin coverage, 2 to 3 for moderate, 4 to 5 for rich. The prompt also includes good and bad examples so the model has a clear target ("What is the attach rate of Xray to Artifactory in the install base, and how has it trended Q-over-Q?" is good. "Tell us about your AI strategy" is bad).
 
 The validator also requires at least one question to contain a citation, which forces the questions to be grounded in items rather than generic.
 
-### What we removed and why
+### Why these nine sections and not more
 
-An earlier draft had a "key risk factors" section. We dropped it because it overlapped with the bear case. An earlier draft also had a "executive summary." We dropped it because the headline plus the position read already serve that role. The current sections are the result of three rounds of trimming.
+Two adjacent sections were considered and rejected. A "key risk factors" block overlaps with the non-consensus bear; surfacing risks twice trains the reader to skim both. An "executive summary" duplicates the work the headline plus the position read already do. Both are absent on purpose to keep every section earning its space.
 
 ---
 
 ## 5. Hallucination defenses
 
-The brief calls hallucinated connections out as the number-one risk: "An LLM that confidently links unrelated source items together is worse than no Brain at all." We agree, and the system has four layers against this.
+The brief calls hallucinated connections out as the number-one risk: "An LLM that confidently links unrelated source items together is worse than no Brain at all." I agree, and the system has four layers against this.
 
 ### Layer 1, closed-world prompts
 
@@ -272,7 +272,7 @@ The hard cases are when the model invents a citation. To catch this, every Brain
 
 If the model cited an id that doesn't exist (a hallucination), the validator returns a specific error: "Citations reference ids that are not in the provided items: [F-bad123]. Remove or replace them with valid ids."
 
-The orchestrator then runs a single repair pass: it sends the original prompt plus the specific errors back to the model, with instructions to fix each error. We pass the SAME validation again. If the repair pass succeeds, we use it. If not, we keep the original and log the failure.
+The orchestrator then runs a single repair pass: it sends the original prompt plus the specific errors back to the model, with instructions to fix each error. I pass the SAME validation again. If the repair pass succeeds, I use it. If not, I keep the original and log the failure.
 
 The validator also enforces structure: every section that requires citations (narrative, bear, bull, position read, what's-changing bullets) must have at least one [ID]. The position_read field can't be empty. The watch_list must have entries. The confidence must be one of the three allowed values. At least one management question must be grounded in a citation.
 
@@ -282,20 +282,20 @@ In testing, the repair loop fires on roughly 5 to 10 percent of refreshes, and r
 
 Vector similarity is great at finding pairs of items that share words. It is terrible at distinguishing "real connection" from "topical adjacency." A Reddit post about "AMD GPU benchmarks" and a GitHub release of "AMD ROCm 6.4" share many words. They are not necessarily connected. The Reddit post is a benchmark comparison; the GitHub release is a software update. Same words, different topics.
 
-Our solution is a two-pass design. The TF-IDF similarity is treated as a candidate generator: it identifies pairs that MIGHT be connected. Then each candidate is sent to Claude with this exact prompt: "Topical adjacency is NOT a connection. A Reddit post about AMD GPUs and a GitHub release of an AMD-related project are not connected unless they share a thematic thread." The judge returns a structured JSON: `is_connected: true|false`, `theme`, `rationale`, `confidence: Low|Medium|High`. The orchestrator drops any connection with `is_connected: false` or `confidence: Low`.
+The solution is a two-pass design. The TF-IDF similarity is treated as a candidate generator: it identifies pairs that MIGHT be connected. Then each candidate is sent to Claude with this exact prompt: "Topical adjacency is NOT a connection. A Reddit post about AMD GPUs and a GitHub release of an AMD-related project are not connected unless they share a thematic thread." The judge returns a structured JSON: `is_connected: true|false`, `theme`, `rationale`, `confidence: Low|Medium|High`. The orchestrator drops any connection with `is_connected: false` or `confidence: Low`.
 
 This works because the judge is given just two items, with focused context. It can hold both in mind and decide if they really tell a single story. Asking Claude to find connections across 30 items at once would not work; the cognitive load is too high and the false-positive rate spikes.
 
 ### Layer 4, the UI cross-check
 
-Even after the validator and the repair loop, we belt-and-suspenders one more time on the front-end. The `linkifyCitations` function in `index.html` takes a string of text and a Set of valid ids. It walks through every `[XX-1234]` pattern and checks the id against the Set. If the id is in the Set, it renders as a clickable chip. If not, it renders as plain text.
+Even after the validator and the repair loop, I belt-and-suspenders one more time on the front-end. The `linkifyCitations` function in `index.html` takes a string of text and a Set of valid ids. It walks through every `[XX-1234]` pattern and checks the id against the Set. If the id is in the Set, it renders as a clickable chip. If not, it renders as plain text.
 
 So even if the validator missed a hallucinated id (which would be a bug), the user wouldn't be misled into clicking it.
 
-### What we don't defend against
+### What I don't defend against
 
-* **Source-level hallucination.** If the model decides to misread a Reddit post (saying "operators are leaving the platform" when the post says no such thing), that's harder to catch automatically because the source IS in the items list. We mitigate this by being strict in the per-item summarizer prompt about not fabricating numbers, names, or quotes.
-* **Source content that's already false.** A Reddit post can lie. The system will faithfully report what the post said. We trust the analyst to weigh source credibility.
+* **Source-level hallucination.** If the model decides to misread a Reddit post (saying "operators are leaving the platform" when the post says no such thing), that's harder to catch automatically because the source IS in the items list. I mitigate this by being strict in the per-item summarizer prompt about not fabricating numbers, names, or quotes.
+* **Source content that's already false.** A Reddit post can lie. The system will faithfully report what the post said. The analyst is trusted to weigh source credibility.
 * **Subtle semantic drift in the Brain Summary.** The model might cite three real items and say something the items don't quite support. The repair loop and the closed-world prompt help. A future eval harness (described in Section 10) would help more.
 
 ---
@@ -308,13 +308,13 @@ Hallucination is "the model invents things." Noise is "the source returned real 
 
 The summarizer prompt explicitly defines pure marketing: a press release without named customers, dollar amounts, usage metrics, or executive specifics. Items meeting that definition get tagged with the theme `promotional` and capped at relevance 2. The orchestrator then drops items where `theme contains 'promotional' AND relevance <= 2` before they reach the snapshot.
 
-This is intentional. Three press releases announcing "industry-first" features without naming a single customer don't add up to signal. They add up to a press-release stack. The Brain Summary should not build a thesis on them. By dropping them at the orchestrator level, we prevent the Brain from accidentally using them as evidence.
+This is intentional. Three press releases announcing "industry-first" features without naming a single customer don't add up to signal. They add up to a press-release stack. The Brain Summary should not build a thesis on them. By dropping them at the orchestrator level, I prevent the Brain from accidentally using them as evidence.
 
-A press release WITH commercial substance (e.g., "Microsoft signs $5B Azure expansion with Walmart") is not promotional. It carries real signal. The summarizer prompt is explicit about this distinction with examples in-context, and we let the model judge.
+A press release WITH commercial substance (e.g., "Microsoft signs $5B Azure expansion with Walmart") is not promotional. It carries real signal. The summarizer prompt is explicit about this distinction with examples in-context, and I let the model judge.
 
 ### X FOMO / pump filter
 
-X is the worst offender for noise because the platform's structure rewards engagement, and high-engagement tweets about stocks are often pumps and FOMO posts. Patterns we catch with regex before the LLM call:
+X is the worst offender for noise because the platform's structure rewards engagement, and high-engagement tweets about stocks are often pumps and FOMO posts. Patterns I catch with regex before the LLM call:
 
 * "to the moon", "calls printing", "easy money", "load up", "huge gains"
 * Affiliate spam: "DM me for signals", "join my discord", "check my bio", "free signals"
@@ -356,38 +356,36 @@ The Connections view is the differentiator from a standard alt-data feed reader.
 
 ### The two-pass design
 
-**Pass 1: TF-IDF candidate generation.** For all summarized items, we build a TF-IDF matrix of `(title + summary + themes)` and compute cosine similarity for every pair. We sort the pairs by similarity descending and take the top 12 above a 0.18 cosine threshold, with same-source pairs requiring a higher threshold (cross-source pairs are intrinsically more interesting). This pass is deterministic, runs in milliseconds, and is essentially free.
+**Pass 1: TF-IDF candidate generation.** For all summarized items, I build a TF-IDF matrix of `(title + summary + themes)` and compute cosine similarity for every pair. I sort the pairs by similarity descending and take the top 12 above a 0.18 cosine threshold, with same-source pairs requiring a higher threshold (cross-source pairs are intrinsically more interesting). This pass is deterministic, runs in milliseconds, and is essentially free.
 
-**Pass 2: LLM-as-judge.** For each candidate pair, we send a focused prompt to Claude that includes only those two items. The prompt explicitly distinguishes "topical adjacency" from "real thematic connection." The model returns structured JSON: `is_connected: bool`, `theme`, `rationale`, `confidence: Low|Medium|High`. We drop everything that's not connected, and drop Low-confidence connections.
+**Pass 2: LLM-as-judge.** For each candidate pair, I send a focused prompt to Claude that includes only those two items. The prompt explicitly distinguishes "topical adjacency" from "real thematic connection." The model returns structured JSON: `is_connected: bool`, `theme`, `rationale`, `confidence: Low|Medium|High`. I drop everything that's not connected, and drop Low-confidence connections.
 
 ### Why two passes instead of one
 
 Three reasons:
 
-1. **Cost.** Pairwise judging on 30 items is 435 LLM calls (n-choose-2). At Sonnet 4.6 rates that's $1.30 just for connections, every refresh. With the candidate filter, we cap at 12 calls, around $0.04. The candidate filter does the bulk of the work for free.
+1. **Cost.** Pairwise judging on 30 items is 435 LLM calls (n-choose-2). At Sonnet 4.6 rates that's $1.30 just for connections, every refresh. With the candidate filter, the cap is 12 calls, around $0.04. The candidate filter does the bulk of the work for free.
 
 2. **Quality.** Sending Claude all 30 items at once and asking "find the connections" produces vague, hedged output. Sending two items at a time, with a focused question, produces sharp judgments.
 
-3. **Composability.** The candidate filter is independently swappable. We use TF-IDF; you could swap it for embeddings (Voyage, OpenAI text-embedding-3) without touching the judge. Embeddings would catch more semantic links that don't share keywords. We didn't use embeddings because they require either an extra API key or a downloadable model. TF-IDF works with no extra dependency.
+3. **Composability.** The candidate filter is independently swappable. I use TF-IDF; you could swap it for embeddings (Voyage, OpenAI text-embedding-3) without touching the judge. Embeddings would catch more semantic links that don't share keywords. I didn't use embeddings because they require either an extra API key or a downloadable model. TF-IDF works with no extra dependency.
 
 ### Why no embedding-based connections in v1
 
-We seriously considered Voyage embeddings (Anthropic's recommended embedding provider). Two reasons we held off:
+I seriously considered Voyage embeddings (Anthropic's recommended embedding provider). Two reasons I held off:
 
 1. **Extra credential.** The system runs with one API key (Anthropic). Adding a second mandatory key violates the simplicity goal.
 2. **Local embedding models** (sentence-transformers) require downloading a 100-MB-plus model file on first run, which adds a noticeable installation step.
 
-In production, embeddings are absolutely the right answer. They'd catch links that TF-IDF misses, like "platform feels slower" on Reddit paired with "perf regression in commit X" on GitHub. We'd swap in Voyage 3 with a prefix budget of around 300 tokens per item. Cost would be roughly $0.001 per refresh, negligible.
+In production, embeddings are absolutely the right answer. They'd catch links that TF-IDF misses, like "platform feels slower" on Reddit paired with "perf regression in commit X" on GitHub. I'd swap in Voyage 3 with a prefix budget of around 300 tokens per item. Cost would be roughly $0.001 per refresh, negligible.
 
 ### Why drop Low confidence
 
-We started with showing all three confidence tiers in the UI. The result was that analysts learned to ignore the Low-confidence connections (because they were often wrong) and the High-confidence ones (because they were rare). The dashboard taught them to scan only Medium-confidence connections.
-
-Cleaner is just to drop Low. The judge's calibration target is "if you're not sure, say not connected." Low confidence is the model's escape hatch when it's torn. Better to skip those entirely than to pollute the cards.
+Surfacing all three confidence tiers in the UI sounds informative, but it trains the analyst to ignore Low (often wrong) and High (rarely fired), and the dashboard ends up teaching the user to scan only Medium-confidence connections. The cleaner design, used here, drops Low entirely. The judge's calibration target is "if you're not sure, say not connected." Low confidence is the model's escape hatch when it is torn. Skipping those keeps the cards uncluttered and forces the judge to commit.
 
 ### Connection cost is bounded
 
-By design. Whether a refresh has 10 items or 100 items, we judge at most 12 candidate pairs. This means connection cost is predictable. The trade-off is that with 100 items, we miss real connections in the long tail. The roadmap addresses this with embeddings, which would let us push the candidate gate higher because the candidate quality would be higher.
+By design. Whether a refresh has 10 items or 100 items, the system judges at most 12 candidate pairs. This means connection cost is predictable. The trade-off is that with 100 items, the system misses real connections in the long tail. The roadmap addresses this with embeddings, which would let the candidate gate sit higher because the candidate quality would be higher.
 
 ---
 
@@ -418,13 +416,13 @@ If a connection judge fails, that one connection is just dropped. The other 11 s
 
 Each source's `fetch` is wrapped in `_safe_fetch` in the orchestrator. Any uncaught exception is logged at WARN level and converted to `(items=[], status="failed: {exception}")`. The status string reaches the dashboard's source-status row. The user sees something like "failed: HTTP 503" in the GitHub column and knows to try again later. The other sources aren't affected.
 
-The Reddit unauthenticated tier is the most fragile. We've seen it return 403 from datacenter IP ranges (which is why the dev sandbox had trouble). On a residential IP with a browser-class User-Agent, it works reliably enough to be the primary path. If it consistently fails for a particular deployment, the production move is to swap in PRAW with OAuth (a one-screen change in `reddit_source.py`).
+Reddit's unauthenticated tier is the source most sensitive to deployment topology: it returns 403 from many datacenter IP ranges, while residential and office IPs with a browser-class User-Agent are reliable. The current implementation is sized for a desktop or local network deployment; the production move is to swap in PRAW with OAuth, which is a one-screen change in `reddit_source.py` and removes the IP sensitivity entirely.
 
 ### Rate-limit hits
 
-* **GitHub.** Without a token, 60 requests per hour shared. Easy to hit. We log a `rate-limited` status and the analyst sees it. The recommendation is to set `GITHUB_TOKEN` (free, 5000 per hour).
-* **X.** Rate-limited on the recent-search endpoint at 1500 requests per 15 minutes per app on Basic. We log `rate-limited` if 429 is returned.
-* **Reddit.** Rate-limited at the source-IP level, no easy way to inspect the threshold. We pace at 600 ms per subreddit call to stay polite.
+* **GitHub.** Without a token, 60 requests per hour shared. Easy to hit. The system logs a `rate-limited` status and the analyst sees it. The recommendation is to set `GITHUB_TOKEN` (free, 5000 per hour).
+* **X.** Rate-limited on the recent-search endpoint at 1500 requests per 15 minutes per app on Basic. The system logs `rate-limited` if 429 is returned.
+* **Reddit.** Rate-limited at the source-IP level, no easy way to inspect the threshold. The system paces at 600 ms per subreddit call to stay polite.
 * **HN, EDGAR, Google News.** No documented rate limits within reasonable use.
 
 ---
@@ -443,24 +441,24 @@ Why three prompts instead of one big agent? Because each task has a single outpu
 
 ### Why temperature 0.3
 
-Low enough that citations stay stable and structured fields (relevance, sentiment, confidence) don't bounce between runs. High enough that the prose reads naturally and not like templated boilerplate. We tested temperature 0.0 and 0.5. At 0.0 the prose felt mechanical; at 0.5, the citations occasionally drifted between repair runs. 0.3 is the right middle.
+Low enough that citations stay stable and structured fields (relevance, sentiment, confidence) don't bounce between runs. High enough that the prose reads naturally and not like templated boilerplate. At 0.0 the prose flattens to mechanical; at 0.5, citations begin to drift between repair runs. 0.3 sits at the right point on that curve.
 
 ### Why JSON output instead of structured tool calls
 
-Sonnet 4.6 supports tool use. We could have used `tool_use` with strict schema enforcement instead of asking for JSON in the response. We chose JSON for two reasons:
+Sonnet 4.6 supports tool use. I could have used `tool_use` with strict schema enforcement instead of asking for JSON in the response. I chose JSON for two reasons:
 
-1. **Repair loop simplicity.** The repair loop reads the previous output, finds the validation errors, and asks the model to fix them. This is much cleaner with JSON-in-text than with tool-call schemas, because we can quote the previous text back to the model.
+1. **Repair loop simplicity.** The repair loop reads the previous output, finds the validation errors, and asks the model to fix them. This is much cleaner with JSON-in-text than with tool-call schemas, because the previous text can be quoted back to the model.
 2. **Fewer moving pieces.** No tool registration, no tool dispatch, just `messages.create` and a JSON parse.
 
-We also have a Pydantic model for every prompt's output, so the schema enforcement happens at parse time. The model just produces text.
+There's also a Pydantic model for every prompt's output, so the schema enforcement happens at parse time. The model just produces text.
 
 ### Why Pydantic for everything
 
-Every value that crosses a module boundary has a defined Pydantic type. This catches type bugs at the boundary, not in production. The validator is a function that returns a list of human-readable error strings, which is exactly the format we want to feed back to the repair-loop prompt.
+Every value that crosses a module boundary has a defined Pydantic type. This catches type bugs at the boundary, not in production. The validator is a function that returns a list of human-readable error strings, which is exactly the format I want to feed back to the repair-loop prompt.
 
 ### Why no agentic tool use for the Brain
 
-We considered an agent loop where the Brain has tools to "fetch more items" or "look up a specific Reddit post." We didn't build it because the items are pre-loaded into the prompt. The Brain has everything it needs at call time. Adding tool use would add latency (extra round trips) and add a vector for non-determinism without adding signal.
+I considered an agent loop where the Brain has tools to "fetch more items" or "look up a specific Reddit post." I didn't build it because the items are pre-loaded into the prompt. The Brain has everything it needs at call time. Adding tool use would add latency (extra round trips) and add a vector for non-determinism without adding signal.
 
 For the chat endpoint, similarly: the snapshot is pre-loaded into the chat prompt. The chat doesn't need to fetch anything mid-conversation.
 
@@ -485,11 +483,11 @@ A real production eval harness would have three pieces:
 
 3. **Cited-claim spot-check.** For each Brain Summary, randomly sample 3 cited claims. A reviewer reads the original source item and checks: does the source actually support the claim? This catches subtle semantic drift that the citation validator can't.
 
-We didn't build (1), (2), or (3) because each requires a manual labelling effort that's outside the scope. The architecture supports them: connections are explicitly typed with confidence levels, snapshots are versioned by file, and the Brain Summary is structured JSON. Building the eval harness on top is a clean addition, not a refactor.
+I didn't build (1), (2), or (3) because each requires a manual labelling effort that's outside the scope. The architecture supports them: connections are explicitly typed with confidence levels, snapshots are versioned by file, and the Brain Summary is structured JSON. Building the eval harness on top is a clean addition, not a refactor.
 
-### How we'd compare against analyst reads
+### How I'd compare against analyst reads
 
-This is what the brief asks about. The simplest version: take a set of analyst-written notes from the firm's research database, pick the ones that turned out to be right (positive analyst calls that played out), and ask "what's in the analyst note that the Brain DIDN'T have?" Then "what's in the Brain that the analyst note didn't?" The first question tells us where to add sources; the second tells us where the Brain is genuinely additive.
+This is what the brief asks about. The simplest version: take a set of analyst-written notes from the firm's research database, pick the ones that turned out to be right (positive analyst calls that played out), and ask "what's in the analyst note that the Brain DIDN'T have?" Then "what's in the Brain that the analyst note didn't?" The first question tells me where to add sources; the second tells me where the Brain is genuinely additive.
 
 A more rigorous version uses time-travel: refresh the Brain on a Friday afternoon for ticker X, save the snapshot. Look at the analyst's note from the following Monday. Compare. Did the Brain surface the same signal earlier? Or did the analyst find something the Brain missed?
 
@@ -522,10 +520,10 @@ Pricing at Sonnet 4.6 list rates: $3 per million input tokens, $15 per million o
 
 ### Where the bottlenecks are, and how to relax them
 
-* **Anthropic rate limit, tier 1.** 8000 output tokens per minute. The summarizer concurrency is set at 4 to stay inside this. On tier 2 (40K out/min), we'd raise it to 10 and refreshes would drop to 30 seconds.
-* **Reddit pacing.** 600 ms per subreddit. We could parallelize across subreddits if Reddit tolerated it, but we hit 429 errors when we tried. Production fix is OAuth (60 requests per minute per token), which would let us hit subreddits in parallel.
+* **Anthropic rate limit, tier 1.** 8000 output tokens per minute. The summarizer concurrency is set at 4 to stay inside this. On tier 2 (40K out/min), I'd raise it to 10 and refreshes would drop to 30 seconds.
+* **Reddit pacing.** 600 ms per subreddit. Parallelizing across subreddits trips Reddit's unauth-tier 429 floor, so the requests are serialized at the polite cadence Reddit's policy expects. Production fix is OAuth (60 requests per minute per token), which lets the system hit subreddits in parallel.
 * **GitHub at 60 per hour.** A single ticker refresh hits GitHub roughly 8 to 10 times. So on the unauthenticated tier, you can refresh maybe 5 to 6 tickers per hour before you 429. With a token (5000 per hour), this stops being a bottleneck.
-* **TF-IDF candidate gen.** Scales O(n^2) on item count. At 30 items it's instant. At 300 items it would still be fine (90,000 pairs computed in milliseconds). At 3,000 items we'd want a smarter candidate retrieval, but we're nowhere near that.
+* **TF-IDF candidate gen.** Scales O(n^2) on item count. At 30 items it's instant. At 300 items it would still be fine (90,000 pairs computed in milliseconds). At 3,000 items I'd want a smarter candidate retrieval, but the volume is nowhere near that.
 
 ### Cost at production scale
 
@@ -535,7 +533,7 @@ Pricing at Sonnet 4.6 list rates: $3 per million input tokens, $15 per million o
 
 These are LLM costs only. Compute and storage are negligible.
 
-The biggest cost lever past warm dedup is mix-model: route per-item summarization to Haiku 4.5 (around 70 percent cheaper) and reserve Sonnet 4.6 for the Brain Summary and the connection judge. We didn't ship this because the case study set Sonnet 4.6 as the default model, but it's a clean addition. With mix-model, 200-ticker daily warm refresh drops to roughly $80 per month.
+The biggest cost lever past warm dedup is mix-model: route per-item summarization to Haiku 4.5 (around 70 percent cheaper) and reserve Sonnet 4.6 for the Brain Summary and the connection judge. I didn't ship this because the case study set Sonnet 4.6 as the default model, but it's a clean addition. With mix-model, 200-ticker daily warm refresh drops to roughly $80 per month.
 
 ---
 
@@ -551,7 +549,7 @@ Three things:
 
 1. **Refresh runs from a scheduler, not the UI button.** EventBridge plus Lambda on AWS, or a Container Apps Job on a timer trigger on Azure. Both are essentially `cron` for the cloud.
 2. **Snapshots move to object storage.** S3 or Blob. The `storage.py` module is the only file that changes; the function signatures are identical. The Pydantic schema stays the same.
-3. **Cross-refresh dedup extends from per-id to content-hash.** Today, an item is "new" if its id wasn't in the previous snapshot. At 200 tickers we'd add a global content-hash table so that a Reddit post quoted in three places gets summarized once across all tickers. This drops cost another 10 to 20 percent.
+3. **Cross-refresh dedup extends from per-id to content-hash.** Today, an item is "new" if its id wasn't in the previous snapshot. At 200 tickers I'd add a global content-hash table so that a Reddit post quoted in three places gets summarized once across all tickers. This drops cost another 10 to 20 percent.
 
 ### Cadence per source at 200 tickers
 
@@ -564,9 +562,9 @@ The orchestrator function signature accepts a `time_window` argument, which the 
 
 ### Where the 200-ticker scale would actually break
 
-* **Reddit unauth limit.** At 200 tickers refreshing hourly, that's around 1200 Reddit subreddit calls per hour. The unauthenticated tier won't tolerate this. We'd swap to OAuth.
-* **Anthropic API tier.** At 200 tickers warm-refreshed daily, we'd be making roughly 2000 Sonnet 4.6 calls per day. Tier 1 is fine. Tier 2 becomes more comfortable.
-* **DynamoDB per-ticker write hot spot.** If we move to DynamoDB and 200 refreshes fire at the same minute, we might see throttling. The fix is to spread refresh start times across the cron window.
+* **Reddit unauth limit.** At 200 tickers refreshing hourly, that's around 1200 Reddit subreddit calls per hour. The unauthenticated tier won't tolerate this. I'd swap to OAuth.
+* **Anthropic API tier.** At 200 tickers warm-refreshed daily, the system would be making roughly 2000 Sonnet 4.6 calls per day. Tier 1 is fine. Tier 2 becomes more comfortable.
+* **DynamoDB per-ticker write hot spot.** If moving to DynamoDB and 200 refreshes fire at the same minute, you might see throttling. The fix is to spread refresh start times across the cron window.
 
 None of these are architectural problems. They're operational ones, all addressable with cloud-side configuration changes.
 
@@ -584,7 +582,7 @@ This is a real redeploy. To make it config-driven, the path is:
 2. Add a plugin loader that imports source modules dynamically based on the config.
 3. Optionally, allow new sources to be uploaded as packaged Python wheels and loaded at startup.
 
-This is a roadmap item. We didn't build it because the case study has 6 sources and the lowest-friction way to ship was the explicit imports. In production with 12-plus sources, the config-driven plugin pattern is the right shape.
+This is a roadmap item. I didn't build it because the case study has 6 sources and the lowest-friction way to ship was the explicit imports. In production with 12-plus sources, the config-driven plugin pattern is the right shape.
 
 ---
 
@@ -616,11 +614,11 @@ Mostly operational, covered in Section 12. The architecture doesn't break. The c
 
 ### Prompt drift
 
-The system uses three prompts. Changes to any of them ripple through the output. We don't have a regression test for prompt changes today. The roadmap eval harness fixes this.
+The system uses three prompts. Changes to any of them ripple through the output. There is no regression test for prompt changes today. The roadmap eval harness fixes this.
 
 ### Vendor risk on Anthropic
 
-The system is hard-bound to Sonnet 4.6 today. Switching to a different LLM provider would require rewriting the Anthropic-specific tool-use and message formatting in `llm.py`. This is contained (one file) but real. The mitigation is to run the prompts through a thin abstraction layer; we didn't build this because YAGNI, but it's a one-day refactor when needed.
+The system is hard-bound to Sonnet 4.6 today. Switching to a different LLM provider would require rewriting the Anthropic-specific tool-use and message formatting in `llm.py`. This is contained (one file) but real. The mitigation is to run the prompts through a thin abstraction layer; I didn't build this because YAGNI, but it's a one-day refactor when needed.
 
 ---
 
@@ -643,7 +641,7 @@ In rough priority order, with rationale:
 
 ## 15. Build vs. buy
 
-AlphaSense, Sentieo, and Tegus sit in adjacent space. AlphaSense in particular does sell-side and corporate document search far better than this dashboard does. They have the corpus, the licensing, the entity resolution, and the years of indexing investment. We can't compete with that.
+AlphaSense, Sentieo, and Tegus sit in adjacent space. AlphaSense in particular does sell-side and corporate document search far better than this dashboard does. They have the corpus, the licensing, the entity resolution, and the years of indexing investment. This Brain can't compete with that.
 
 What this Brain does that they don't: cross-source synthesis between true alt-data sources (Reddit, HN, X, GitHub) and authoritative filings, with explicit citation enforcement, confidence-graded connections, and a Position Read plus Management Questions output that maps directly onto a PM's decision process.
 
@@ -651,6 +649,6 @@ The right framing is that AlphaSense is the index and search layer for known doc
 
 If the build-vs-buy question is "should we just buy AlphaSense and stop here," the answer is no. AlphaSense doesn't index Reddit, doesn't index Hacker News, doesn't pull GitHub issues, and doesn't synthesize across heterogeneous unstructured sources. It indexes documents in a corpus. That's a different product. You want both.
 
-If the question is "should we build the document-search layer ourselves," the answer is also no. Buying that capability from AlphaSense is much faster and the result is much better than what we'd build in a year of in-house work.
+If the question is "should we build the document-search layer ourselves," the answer is also no. Buying that capability from AlphaSense is much faster and the result is much better than what could be built in a year of in-house work.
 
 The right portfolio is: license AlphaSense for document search, license Glassdoor and Levels via Revelio for employee-side signal, license app-store data via Sensor Tower, build the Brain for the cross-source synthesis. The Brain is the layer where the firm's edge actually lives. Everything else is commodity infrastructure.
