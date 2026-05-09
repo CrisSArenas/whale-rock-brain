@@ -1,0 +1,92 @@
+{
+  "AMD": {
+    "group": "case_study",
+    "company_name": "Advanced Micro Devices",
+    "aliases": ["AMD", "Advanced Micro Devices"],
+    "github_orgs": ["ROCm"],
+    "github_keywords": ["AMD GPU", "ROCm", "MI300", "Ryzen"],
+    "subreddits": ["AMD_Stock", "Amd", "hardware", "buildapc", "wallstreetbets", "stocks"],
+    "news_query": "\"Advanced Micro Devices\" OR \"AMD MI300\" OR \"AMD ROCm\" OR \"AMD Ryzen\"",
+    "context": "Semiconductor company; AI/datacenter GPUs (MI300/MI325), CPUs (Ryzen, EPYC), competitive position vs Nvidia and Intel."
+  },
+  "SNDK": {
+    "group": "case_study",
+    "company_name": "Sandisk Corporation",
+    "aliases": ["SanDisk", "SNDK", "Sandisk"],
+    "github_orgs": [],
+    "github_keywords": ["sandisk"],
+    "subreddits": ["DataHoarder", "hardware", "wallstreetbets", "stocks", "investing"],
+    "news_query": "\"SanDisk\" OR \"SNDK\" NAND storage",
+    "context": "Flash memory and storage; spun off from Western Digital in early 2025. NAND pricing cycle, enterprise SSD demand, hyperscaler capex."
+  },
+  "FROG": {
+    "group": "case_study",
+    "company_name": "JFrog",
+    "aliases": ["JFrog", "FROG", "Artifactory"],
+    "github_orgs": ["jfrog"],
+    "github_keywords": ["jfrog", "artifactory", "xray"],
+    "subreddits": ["devops", "kubernetes", "programming", "stocks", "wallstreetbets"],
+    "news_query": "\"JFrog\" OR \"Artifactory\" devops",
+    "context": "DevOps software supply chain platform; Artifactory, Xray, security/SBOM, ML-Ops expansion. Enterprise sales motion."
+  },
+  "APP": {
+    "group": "case_study",
+    "company_name": "AppLovin",
+    "aliases": ["AppLovin", "APP"],
+    "github_orgs": ["AppLovin"],
+    "github_keywords": ["applovin", "max sdk", "axon"],
+    "subreddits": ["mobilegaming", "gamedev", "wallstreetbets", "stocks", "investing"],
+    "news_query": "\"AppLovin\" OR \"AXON\" advertising",
+    "context": "Mobile ad-tech and gaming; AXON 2.0 ML ad engine, take-rate vs Meta/Google, e-commerce ads expansion."
+  },
+  "KVYO": {
+    "group": "case_study",
+    "company_name": "Klaviyo",
+    "aliases": ["Klaviyo", "KVYO"],
+    "github_orgs": ["klaviyo"],
+    "github_keywords": ["klaviyo"],
+    "subreddits": ["shopify", "ecommerce", "marketing", "stocks", "wallstreetbets"],
+    "news_query": "\"Klaviyo\" email marketing OR Shopify",
+    "context": "Email/SMS marketing automation for e-commerce; Shopify channel dependence, AI features, enterprise upmarket motion, churn cohort behavior."
+  },
+  "MDB": {
+    "group": "examples",
+    "company_name": "MongoDB",
+    "aliases": ["MongoDB", "MDB", "Mongo"],
+    "github_orgs": ["mongodb"],
+    "github_keywords": ["mongodb", "atlas", "mongo driver"],
+    "subreddits": ["mongodb", "Database", "programming", "devops", "webdev", "stocks"],
+    "news_query": "\"MongoDB\" OR \"MongoDB Atlas\"",
+    "context": "Document database with Atlas cloud growth, vector search expansion for RAG workloads, competitive against Snowflake / Postgres / DynamoDB. Watch Atlas net-new ARR mix and consumption-revenue trends."
+  },
+  "NVDA": {
+    "group": "examples",
+    "company_name": "NVIDIA Corporation",
+    "aliases": ["NVIDIA", "NVDA", "Nvidia"],
+    "github_orgs": ["NVIDIA"],
+    "github_keywords": ["NVIDIA", "CUDA", "Blackwell", "Hopper", "TensorRT"],
+    "subreddits": ["nvidia", "hardware", "MachineLearning", "wallstreetbets", "stocks", "buildapc"],
+    "news_query": "\"NVIDIA\" OR \"NVDA\" Blackwell OR Hopper OR datacenter GPU",
+    "context": "AI/datacenter GPU dominance via CUDA moat. Blackwell ramp, customer concentration (hyperscalers), gross-margin sustainability, networking attach (Mellanox), competition from AMD MI300 and ASIC alternatives."
+  },
+  "META": {
+    "group": "examples",
+    "company_name": "Meta Platforms",
+    "aliases": ["Meta", "Meta Platforms", "Facebook", "META"],
+    "github_orgs": ["facebook", "facebookresearch"],
+    "github_keywords": ["llama", "pytorch", "react native", "metaverse"],
+    "subreddits": ["Facebook", "instagram", "MetaverseDev", "MachineLearning", "wallstreetbets", "stocks"],
+    "news_query": "\"Meta Platforms\" OR \"Mark Zuckerberg\" Reels OR Reality Labs OR Llama",
+    "context": "Family of apps + AI infra + Reality Labs. Watch ad-impression / pricing growth, Reels monetization vs TikTok, Reality Labs operating losses, AI capex absorption, Llama open-source strategy."
+  },
+  "MSFT": {
+    "group": "examples",
+    "company_name": "Microsoft",
+    "aliases": ["Microsoft", "MSFT"],
+    "github_orgs": ["microsoft", "Azure"],
+    "github_keywords": ["azure", "copilot", "vscode", "dotnet", "typescript"],
+    "subreddits": ["AZURE", "Office365", "sysadmin", "MachineLearning", "wallstreetbets", "stocks"],
+    "news_query": "\"Microsoft\" Azure OR Copilot OR OpenAI",
+    "context": "Cloud + AI + productivity. Azure growth vs AWS, Copilot monetization (Office, GitHub, Security), OpenAI relationship and capacity, gaming (Activision integration). Watch Azure AI services revenue mix and capex ramp."
+  }
+}

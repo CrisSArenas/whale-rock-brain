@@ -1,0 +1,2140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Whale Rock Brain</title>
+<style>
+:root {
+  --navy: #0B2545;
+  --navy-2: #13315C;
+  --navy-deep: #08182E;
+  --ink: #0A1628;
+  --ink-2: #4A5468;
+  --bg: #FAFAF7;
+  --card: #FFFFFF;
+  --border: #E8EAEE;
+  --border-strong: #D5D9E0;
+  --gold: #C8A45C;
+  --gold-soft: rgba(200, 164, 92, 0.14);
+  --green: #1B7B47;
+  --red: #B43F3F;
+  --amber: #B8500F;
+  --neutral: #5A6478;
+  --shadow-1: 0 1px 2px rgba(11, 37, 69, 0.04);
+  --shadow-2: 0 6px 22px rgba(11, 37, 69, 0.07);
+  --shadow-3: 0 20px 50px rgba(11, 37, 69, 0.10);
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", sans-serif;
+  --font-serif: "Iowan Old Style", "Georgia", "Times New Roman", serif;
+  --font-mono: ui-monospace, "SF Mono", "Menlo", "Cascadia Mono", monospace;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+body {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.55;
+  min-height: 100vh;
+  position: relative;
+  padding-bottom: 96px;
+}
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background:
+    radial-gradient(ellipse at 30% 0%, rgba(11, 37, 69, 0.04) 0%, transparent 55%),
+    radial-gradient(ellipse at 90% 90%, rgba(200, 164, 92, 0.04) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+.container { max-width: 1180px; margin: 0 auto; padding: 0 28px; position: relative; z-index: 1; }
+a { color: var(--navy); text-decoration: none; }
+a:hover { text-decoration: underline; }
+button { font-family: var(--font-sans); cursor: pointer; }
+
+/* HEADER */
+.header {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(250, 250, 247, 0.78);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid var(--border);
+}
+.header-inner {
+  display: flex; align-items: center; justify-content: space-between;
+  height: 60px;
+}
+.wordmark {
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--navy);
+  display: flex; align-items: baseline; gap: 8px;
+}
+.wordmark .mark-line { font-size: 0.6875rem; color: var(--neutral); letter-spacing: 0.12em; text-transform: uppercase; font-family: var(--font-sans); }
+.header-right { display: flex; align-items: center; gap: 8px; }
+.icon-btn {
+  width: 34px; height: 34px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: var(--card);
+  color: var(--ink-2);
+  font-weight: 600;
+  font-size: 0.85rem;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.icon-btn:hover { background: var(--navy); color: #fff; border-color: var(--navy); }
+
+/* HERO */
+.hero { padding: 56px 0 24px; }
+.hero h1 {
+  font-family: var(--font-serif);
+  font-size: 2.6rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--navy);
+  margin-bottom: 8px;
+}
+.hero p {
+  font-size: 1rem;
+  color: var(--ink-2);
+  max-width: 720px;
+}
+.hero .accent-rule {
+  width: 36px; height: 2px; background: var(--gold); margin: 18px 0 0;
+}
+
+/* CONTROLS BAR */
+.controls {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  margin: 28px 0 18px;
+  padding: 16px 18px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow-1);
+}
+.controls label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--neutral);
+}
+.select-wrap { position: relative; }
+select {
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--ink);
+  background: var(--card);
+  padding: 9px 36px 9px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  min-width: 240px;
+}
+select:focus { border-color: var(--navy); box-shadow: 0 0 0 3px rgba(11, 37, 69, 0.1); }
+.select-chevron {
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  pointer-events: none; color: var(--neutral); font-size: 0.7rem;
+}
+.btn-primary {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #fff;
+  background: var(--navy);
+  border: 1px solid var(--navy);
+  padding: 9px 18px;
+  border-radius: 10px;
+  display: inline-flex; align-items: center; gap: 8px;
+  transition: background 0.15s, transform 0.05s;
+}
+.btn-primary:hover { background: var(--navy-2); }
+.btn-primary:active { transform: scale(0.98); }
+.btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+.btn-ghost {
+  font-size: 0.85rem; font-weight: 500;
+  color: var(--ink-2);
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  padding: 8px 14px;
+  border-radius: 10px;
+}
+.btn-ghost:hover { border-color: var(--navy); color: var(--navy); }
+
+.status-pill {
+  margin-left: auto;
+  font-size: 0.8rem;
+  color: var(--neutral);
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.status-pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--neutral); display: inline-block; }
+.status-pill.fresh .dot { background: var(--green); }
+.status-pill.stale .dot { background: var(--amber); }
+.status-pill.empty .dot { background: var(--red); }
+
+/* SPINNER OVERLAY */
+.refresh-overlay {
+  position: fixed; inset: 0;
+  background: rgba(250, 250, 247, 0.78);
+  backdrop-filter: blur(8px);
+  z-index: 200;
+  display: none;
+  align-items: center; justify-content: center;
+}
+.refresh-overlay.show { display: flex; }
+.refresh-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px 32px;
+  box-shadow: var(--shadow-3);
+  text-align: center;
+  min-width: 320px;
+}
+.spinner {
+  width: 36px; height: 36px;
+  border: 3px solid var(--border);
+  border-top-color: var(--navy);
+  border-radius: 50%;
+  margin: 0 auto 14px;
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.refresh-card .label { font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--neutral); margin-bottom: 4px; }
+.refresh-card .stage { font-size: 1.05rem; font-weight: 500; color: var(--ink); }
+.refresh-card .sub { font-size: 0.85rem; color: var(--ink-2); margin-top: 8px; }
+
+/* INLINE METRICS STRIP */
+.metrics-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin: 4px 0 18px;
+}
+@media (max-width: 720px) { .metrics-strip { grid-template-columns: 1fr 1fr; } }
+.metric {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 16px;
+  box-shadow: var(--shadow-1);
+  display: flex; flex-direction: column; gap: 4px;
+}
+.metric-label {
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--neutral);
+  font-weight: 600;
+}
+.metric-value {
+  font-size: 1.45rem;
+  font-weight: 600;
+  color: var(--navy);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+.metric-sub {
+  font-size: 0.74rem;
+  color: var(--ink-2);
+}
+
+/* BRAIN CARD */
+.brain-card {
+  background: linear-gradient(180deg, var(--navy-deep) 0%, var(--navy) 100%);
+  color: #F5F1E8;
+  border-radius: 18px;
+  padding: 32px 36px;
+  box-shadow: var(--shadow-2);
+  margin-bottom: 22px;
+  position: relative;
+  overflow: hidden;
+}
+.brain-card::after {
+  content: ''; position: absolute; right: -60px; top: -60px;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(200, 164, 92, 0.18) 0%, transparent 65%);
+  pointer-events: none;
+}
+.brain-eyebrow {
+  font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 10px; font-weight: 600;
+}
+.brain-headline {
+  font-family: var(--font-serif);
+  font-size: 1.5rem; line-height: 1.35;
+  font-weight: 600;
+  margin-bottom: 18px;
+}
+.brain-narrative { font-size: 0.96rem; line-height: 1.7; color: rgba(245, 241, 232, 0.92); white-space: pre-wrap; }
+.brain-narrative p + p { margin-top: 10px; }
+
+/* Position read — sits between headline and narrative; the most important
+   PM-actionable read on the card. */
+.position-read {
+  margin: 18px 0 18px;
+  padding: 16px 18px;
+  background: rgba(200, 164, 92, 0.10);
+  border: 1px solid rgba(200, 164, 92, 0.25);
+  border-left: 3px solid var(--gold);
+  border-radius: 10px;
+}
+.position-head {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 10px; margin-bottom: 8px;
+}
+.position-head .label {
+  font-size: 0.66rem; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--gold); font-weight: 700; margin: 0;
+}
+.conf-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+/* Confidence pill — white background variant for legibility on the dark
+   navy Brain card. The default green/gold/gray palettes wash out against
+   the navy + cream tinting; we override with a clean white pill. */
+.position-read .conf-pill {
+  background: #FFFFFF !important;
+  border: 1.5px solid currentColor !important;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 4px 12px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.position-read .conf-pill::before {
+  content: "";
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  display: inline-block;
+}
+.position-read .conf-pill.conf-High   { color: #1B7B47 !important; }
+.position-read .conf-pill.conf-Medium { color: #B8500F !important; }
+.position-read .conf-pill.conf-Low    { color: #5A6478 !important; }
+
+.position-read .conf-rationale {
+  font-size: 0.78rem; color: rgba(245, 241, 232, 0.78);
+  font-style: italic;
+}
+.position-body {
+  font-size: 0.96rem;
+  line-height: 1.65;
+  color: #F5F1E8;
+}
+
+/* Management questions — the action-item block at the bottom of the
+   Brain card. Visually anchors the read with concrete next-step asks. */
+.mgmt-questions {
+  margin-top: 22px;
+  padding: 18px 20px 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(200, 164, 92, 0.22);
+  border-left: 3px solid var(--gold);
+  border-radius: 10px;
+}
+.mgmt-q-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  flex-wrap: wrap; gap: 8px;
+  margin-bottom: 10px;
+}
+.mgmt-q-head .label {
+  font-size: 0.66rem; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--gold); font-weight: 700; margin: 0;
+}
+.mgmt-q-count {
+  font-size: 0.7rem;
+  color: rgba(245, 241, 232, 0.58);
+  font-style: italic;
+  letter-spacing: 0.04em;
+}
+.mgmt-q-list {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+  counter-reset: mgmt-q;
+}
+.mgmt-q-list li {
+  position: relative;
+  padding: 10px 0 10px 36px;
+  font-size: 0.93rem;
+  line-height: 1.6;
+  color: rgba(245, 241, 232, 0.94);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  counter-increment: mgmt-q;
+}
+.mgmt-q-list li:last-child { border-bottom: none; }
+.mgmt-q-list li::before {
+  content: counter(mgmt-q);
+  position: absolute;
+  left: 0; top: 10px;
+  width: 24px; height: 24px;
+  background: var(--gold);
+  color: var(--navy-deep);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.78rem; font-weight: 700;
+  font-family: var(--font-sans);
+}
+
+.brain-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 18px;
+  margin-top: 22px;
+  padding-top: 22px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+@media (max-width: 760px) { .brain-grid { grid-template-columns: 1fr; } }
+.brain-block .label {
+  font-size: 0.65rem; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 8px; font-weight: 600;
+}
+.brain-block .body { font-size: 0.92rem; color: rgba(245, 241, 232, 0.88); line-height: 1.65; }
+.changing-list { list-style: none; padding: 0; margin: 0; }
+.changing-list li {
+  font-size: 0.92rem; color: rgba(245, 241, 232, 0.92);
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  line-height: 1.55;
+}
+.changing-list li:last-child { border-bottom: none; }
+
+.cite {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  background: rgba(200, 164, 92, 0.18);
+  color: var(--gold);
+  border: 1px solid rgba(200, 164, 92, 0.28);
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin: 0 1px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.cite:hover { background: rgba(200, 164, 92, 0.32); }
+.cite-light {
+  background: var(--gold-soft); color: var(--navy); border-color: rgba(200, 164, 92, 0.32);
+}
+.cite-light:hover { background: rgba(200, 164, 92, 0.22); }
+
+/* SECTION HEADER */
+.section-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin: 32px 0 14px;
+}
+.section-head h2 {
+  font-family: var(--font-serif);
+  font-size: 1.4rem; font-weight: 600;
+  color: var(--navy);
+  letter-spacing: -0.01em;
+}
+.section-head .muted { font-size: 0.82rem; color: var(--neutral); }
+
+/* SOURCE FEED COLUMNS */
+.feeds {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+@media (max-width: 1040px) { .feeds { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 620px)  { .feeds { grid-template-columns: 1fr; } }
+
+.feed-col {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  min-height: 220px;
+}
+.feed-head {
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.feed-head h3 {
+  font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--navy); font-weight: 700;
+}
+.feed-head .count {
+  font-size: 0.72rem; color: var(--neutral);
+  background: var(--bg); padding: 2px 8px; border-radius: 999px;
+  font-variant-numeric: tabular-nums;
+}
+.feed-status {
+  font-size: 0.72rem; color: var(--neutral);
+  padding: 6px 16px;
+  background: #FBF9F4;
+  border-bottom: 1px solid var(--border);
+}
+.feed-status.error { color: var(--amber); background: #FDF6EC; }
+.feed-list {
+  flex: 1; overflow-y: auto;
+  max-height: 540px;
+}
+.feed-item {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.feed-item:hover { background: #FCFBF7; }
+.feed-item:last-child { border-bottom: none; }
+.feed-item .title {
+  font-size: 0.9rem; font-weight: 600; color: var(--ink);
+  line-height: 1.4;
+  margin-bottom: 6px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.feed-item .summary {
+  font-size: 0.82rem; color: var(--ink-2); line-height: 1.5;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.feed-item .meta {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  margin-top: 8px;
+  font-size: 0.7rem; color: var(--neutral);
+  font-variant-numeric: tabular-nums;
+}
+.chip {
+  font-size: 0.68rem; padding: 2px 7px; border-radius: 999px;
+  font-weight: 600; letter-spacing: 0.02em;
+  border: 1px solid transparent;
+}
+.chip-bull { color: var(--green); background: rgba(27, 123, 71, 0.10); border-color: rgba(27, 123, 71, 0.18); }
+.chip-bear { color: var(--red); background: rgba(180, 63, 63, 0.10); border-color: rgba(180, 63, 63, 0.18); }
+.chip-neutral { color: var(--neutral); background: var(--bg); border-color: var(--border-strong); }
+.chip-mixed { color: var(--amber); background: rgba(184, 80, 15, 0.10); border-color: rgba(184, 80, 15, 0.18); }
+.chip-rel {
+  color: var(--navy);
+  background: var(--gold-soft);
+  border-color: rgba(200, 164, 92, 0.28);
+  font-variant-numeric: tabular-nums;
+}
+.chip-id {
+  font-family: var(--font-mono);
+  background: var(--bg); color: var(--ink-2); border-color: var(--border-strong);
+  font-size: 0.68rem;
+}
+
+/* CONNECTIONS */
+.connections-list { display: flex; flex-direction: column; gap: 12px; }
+.conn-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  box-shadow: var(--shadow-1);
+}
+.conn-head {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+  margin-bottom: 10px;
+}
+.conn-theme {
+  font-size: 0.98rem; font-weight: 600; color: var(--navy);
+  font-family: var(--font-serif);
+}
+.conf-pill {
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em;
+  padding: 3px 9px; border-radius: 999px;
+  text-transform: uppercase;
+}
+.conf-High { background: rgba(27, 123, 71, 0.10); color: var(--green); border: 1px solid rgba(27, 123, 71, 0.22); }
+.conf-Medium { background: var(--gold-soft); color: var(--navy); border: 1px solid rgba(200, 164, 92, 0.32); }
+.conf-Low { background: var(--bg); color: var(--neutral); border: 1px solid var(--border-strong); }
+
+.conn-rationale { font-size: 0.88rem; color: var(--ink-2); line-height: 1.6; }
+.conn-meta {
+  margin-top: 10px;
+  display: flex; flex-wrap: wrap; gap: 6px;
+  font-size: 0.72rem; color: var(--neutral);
+  font-variant-numeric: tabular-nums;
+}
+
+/* EMPTY STATES */
+.empty-state {
+  background: var(--card);
+  border: 1px dashed var(--border-strong);
+  border-radius: 14px;
+  padding: 36px;
+  text-align: center;
+  color: var(--ink-2);
+}
+.empty-state h3 { color: var(--navy); font-family: var(--font-serif); margin-bottom: 6px; font-weight: 600; }
+.empty-state p { font-size: 0.92rem; line-height: 1.6; }
+.empty-state .btn-primary { margin-top: 16px; }
+
+/* CHAT DOCK */
+.chat-dock {
+  position: fixed;
+  bottom: 18px; right: 18px;
+  width: 380px;
+  max-width: calc(100vw - 36px);
+  background: var(--card);
+  border: 1px solid var(--border-strong);
+  border-radius: 16px;
+  box-shadow: var(--shadow-3);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  z-index: 100;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+.chat-dock.collapsed { transform: translateY(calc(100% - 56px)); }
+.chat-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--navy);
+  color: #fff;
+  cursor: pointer;
+  user-select: none;
+}
+.chat-head .title { font-size: 0.82rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+.chat-head .arrow { font-size: 0.85rem; opacity: 0.8; }
+.chat-body {
+  display: flex; flex-direction: column;
+  height: 420px;
+}
+.chat-msgs {
+  flex: 1; overflow-y: auto;
+  padding: 14px 16px;
+  display: flex; flex-direction: column; gap: 10px;
+  background: #FBFAF6;
+}
+.msg {
+  font-size: 0.88rem; line-height: 1.55;
+  padding: 10px 12px; border-radius: 12px;
+  max-width: 88%;
+  white-space: pre-wrap;
+}
+.msg-user {
+  background: var(--navy); color: #fff;
+  align-self: flex-end;
+}
+.msg-assistant {
+  background: var(--card); color: var(--ink);
+  border: 1px solid var(--border);
+  align-self: flex-start;
+}
+.msg-system {
+  font-size: 0.78rem; color: var(--neutral); align-self: center;
+  font-style: italic;
+}
+.chat-form {
+  display: flex; gap: 8px; padding: 12px;
+  border-top: 1px solid var(--border);
+  background: var(--card);
+}
+.chat-form input {
+  flex: 1;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  padding: 9px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  outline: none;
+}
+.chat-form input:focus { border-color: var(--navy); box-shadow: 0 0 0 3px rgba(11, 37, 69, 0.08); }
+.chat-form button {
+  background: var(--navy); color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 9px 14px;
+  font-size: 0.85rem; font-weight: 600;
+}
+.chat-form button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* MODAL */
+.modal-bg {
+  position: fixed; inset: 0;
+  background: rgba(8, 24, 46, 0.45);
+  backdrop-filter: blur(4px);
+  display: none;
+  align-items: center; justify-content: center;
+  z-index: 300;
+  padding: 20px;
+}
+.modal-bg.show { display: flex; }
+.modal {
+  background: var(--card);
+  border-radius: 18px;
+  padding: 28px 30px;
+  max-width: 560px; width: 100%;
+  box-shadow: var(--shadow-3);
+  max-height: 85vh; overflow-y: auto;
+}
+.modal h2 {
+  font-family: var(--font-serif);
+  font-size: 1.35rem; color: var(--navy);
+  margin-bottom: 14px; font-weight: 600;
+}
+.modal h3 {
+  font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--neutral); margin: 16px 0 8px; font-weight: 600;
+}
+.modal p { font-size: 0.9rem; color: var(--ink-2); margin-bottom: 8px; line-height: 1.6; }
+.modal ul { font-size: 0.9rem; color: var(--ink-2); padding-left: 22px; line-height: 1.7; }
+.modal table { width: 100%; border-collapse: collapse; font-size: 0.86rem; margin-top: 4px; }
+.modal th, .modal td {
+  text-align: left; padding: 7px 8px;
+  border-bottom: 1px solid var(--border);
+  font-variant-numeric: tabular-nums;
+}
+.modal th { font-size: 0.72rem; text-transform: uppercase; color: var(--neutral); letter-spacing: 0.06em; font-weight: 600; }
+.modal td.num { text-align: right; }
+.modal .close-row { display: flex; justify-content: flex-end; margin-top: 14px; }
+.kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 6px 0 14px; }
+@media (max-width: 540px) { .kpi-row { grid-template-columns: 1fr 1fr; } }
+.kpi {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.kpi .lbl { font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--neutral); margin-bottom: 4px; }
+.kpi .val { font-size: 1.1rem; font-weight: 600; color: var(--navy); font-variant-numeric: tabular-nums; }
+
+/* HIGHLIGHTED ITEM (when a citation is clicked) */
+.feed-item.low-rel { opacity: 0.78; }
+.feed-item.low-rel .title { font-weight: 500; }
+
+.feed-empty {
+  padding: 22px 16px;
+  text-align: center;
+  display: flex; flex-direction: column; gap: 12px; align-items: center;
+}
+.feed-empty-msg { font-size: 0.85rem; color: var(--neutral); }
+.feed-hint {
+  padding: 14px 16px;
+  border-top: 1px dashed var(--border-strong);
+  font-size: 0.78rem; color: var(--neutral);
+  display: flex; flex-direction: column; gap: 8px; align-items: flex-start;
+}
+.btn-thin-wider {
+  font-size: 0.78rem; font-weight: 600;
+  background: var(--card);
+  color: var(--navy);
+  border: 1px solid var(--border-strong);
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+.btn-thin-wider:hover {
+  background: var(--navy);
+  color: #fff;
+  border-color: var(--navy);
+}
+
+.feed-item.flash {
+  animation: flash 1.6s ease;
+}
+@keyframes flash {
+  0% { background: rgba(200, 164, 92, 0.0); }
+  20% { background: rgba(200, 164, 92, 0.35); }
+  100% { background: rgba(200, 164, 92, 0.0); }
+}
+
+/* SOURCE STATUS LIST */
+.src-status-row { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+.src-status-row:last-child { border-bottom: none; }
+.src-status-row .name { font-weight: 600; color: var(--ink); text-transform: capitalize; }
+.src-status-row .val { color: var(--ink-2); text-align: right; }
+.src-status-row.err .val { color: var(--amber); }
+
+footer.footer-note {
+  margin-top: 32px;
+  padding: 14px 0 8px;
+  font-size: 0.75rem;
+  color: var(--neutral);
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+
+/* PRINT-ONLY REPORT HEADER (hidden on screen, shown when window.print() runs) */
+.print-header { display: none; }
+.print-meta-grid { display: none; }
+
+/* PRINT MEDIA — strip controls, reformat dark cards for white paper. */
+@media print {
+  /* Page setup */
+  @page { size: Letter; margin: 0.6in; }
+
+  body {
+    background: #fff !important;
+    color: #0A1628 !important;
+    padding-bottom: 0 !important;
+    font-size: 10.5pt;
+    line-height: 1.45;
+  }
+  body::before { display: none !important; }
+
+  /* Hide screen-only chrome AND everything below the Brain card. The print
+     output is intentionally a clean, single-purpose Brain Summary report —
+     source feeds, connections, and the inline metrics strip are excluded. */
+  .header,
+  .hero .accent-rule,
+  .controls,
+  .empty-state,
+  .chat-dock,
+  .refresh-overlay,
+  .modal-bg,
+  .footer-note,
+  .feed-status,
+  .btn-thin-wider,
+  .feed-empty,
+  .feed-hint,
+  .metrics-strip,
+  .section-head,
+  .feeds,
+  .connections-list {
+    display: none !important;
+  }
+  .hero { padding: 0 !important; margin-bottom: 8px; }
+  .hero h1, .hero p { display: none !important; }
+
+  /* Reveal print header */
+  .print-header { display: block !important; margin-bottom: 18px; }
+  .print-wordmark {
+    font-family: var(--font-serif);
+    font-size: 18pt; font-weight: 600; color: var(--navy);
+    letter-spacing: 0.02em;
+  }
+  .print-subtitle {
+    font-size: 9pt; color: var(--neutral); letter-spacing: 0.06em;
+    text-transform: uppercase; margin: 2px 0 12px;
+  }
+  .print-meta-grid {
+    display: grid !important;
+    grid-template-columns: max-content 1fr;
+    gap: 4px 14px;
+    font-size: 10pt;
+  }
+  .print-meta-row { display: contents; }
+  .print-meta-row .k {
+    font-size: 8.5pt;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--neutral);
+    font-weight: 600;
+    align-self: center;
+  }
+  .print-meta-row .v { color: var(--ink); }
+  .print-rule {
+    border-top: 1.5px solid var(--navy);
+    margin: 14px 0 18px;
+    width: 100%;
+  }
+
+  /* Container — kill side margins from .container, let @page handle margins */
+  .container { padding: 0 !important; max-width: none !important; }
+
+  /* Brain card — flatten dark navy to white paper */
+  .brain-card {
+    background: #fff !important;
+    color: var(--ink) !important;
+    border: 1px solid #c5c9d2 !important;
+    border-left: 3px solid var(--navy) !important;
+    border-radius: 6px !important;
+    box-shadow: none !important;
+    padding: 18px 22px !important;
+    page-break-inside: avoid;
+    margin-bottom: 16px;
+  }
+  .brain-card::after { display: none !important; }
+  .brain-eyebrow { color: var(--navy) !important; font-size: 8pt; }
+  .brain-headline {
+    color: var(--navy) !important;
+    font-size: 16pt !important;
+    line-height: 1.3;
+    margin-bottom: 12px !important;
+  }
+  .brain-narrative,
+  .brain-block .body,
+  .changing-list li {
+    color: var(--ink) !important;
+  }
+  .brain-block .label { color: var(--navy) !important; }
+  .changing-list li { border-bottom: 1px solid #e8eaee; }
+
+  /* Position read — soft cream block on paper */
+  .position-read {
+    background: #FBF5E6 !important;
+    border: 1px solid #d8c08a !important;
+    border-left: 3px solid var(--gold) !important;
+    margin: 14px 0 !important;
+    page-break-inside: avoid;
+  }
+  .position-read .label { color: var(--navy) !important; }
+  .position-read .position-body { color: var(--ink) !important; }
+  .position-read .conf-rationale { color: var(--ink-2) !important; }
+  .position-read .conf-pill {
+    background: #fff !important;
+    border: 1px solid #c5c9d2 !important;
+  }
+
+  /* Brain grid — let it stack on narrow pages */
+  .brain-grid {
+    border-top: 1px solid #e8eaee !important;
+    margin-top: 14px !important;
+    padding-top: 14px !important;
+  }
+
+  /* Management questions — flatten dark navy → cream block on paper */
+  .mgmt-questions {
+    background: #FBF5E6 !important;
+    border: 1px solid #d8c08a !important;
+    border-left: 3px solid var(--gold) !important;
+    page-break-inside: avoid;
+  }
+  .mgmt-q-head .label { color: var(--navy) !important; }
+  .mgmt-q-count { color: var(--ink-2) !important; }
+  .mgmt-q-list li {
+    color: var(--ink) !important;
+    border-bottom-color: #e0d4b3 !important;
+  }
+  .mgmt-q-list li::before {
+    background: var(--navy) !important;
+    color: #fff !important;
+  }
+
+  /* Cite chips — make them readable in print */
+  .cite, .cite-light {
+    background: transparent !important;
+    border: 1px solid #c5c9d2 !important;
+    color: var(--navy) !important;
+    font-size: 8.5pt !important;
+    cursor: text !important;
+  }
+
+  /* Section headers */
+  .section-head {
+    margin: 18px 0 8px !important;
+    page-break-after: avoid;
+    border-top: 1px solid #c5c9d2;
+    padding-top: 12px;
+  }
+  .section-head h2 { font-size: 13pt !important; color: var(--navy) !important; }
+  .section-head .muted { font-size: 8.5pt; color: var(--neutral); }
+
+  /* Source feeds — stack vertically, all items visible, with full URLs */
+  .feeds {
+    display: block !important;
+  }
+  .feed-col {
+    background: #fff !important;
+    border: 1px solid #c5c9d2 !important;
+    border-radius: 4px !important;
+    margin-bottom: 12px !important;
+    page-break-inside: avoid;
+  }
+  .feed-head {
+    background: #f6f5f0;
+    border-bottom: 1px solid #c5c9d2 !important;
+    padding: 8px 12px !important;
+  }
+  .feed-head h3 { font-size: 9.5pt !important; color: var(--navy) !important; }
+  .feed-head .count { background: #fff; border: 1px solid #c5c9d2; }
+  .feed-list {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  .feed-item {
+    padding: 10px 12px !important;
+    page-break-inside: avoid;
+    border-bottom: 1px solid #e8eaee !important;
+    cursor: text !important;
+  }
+  .feed-item.low-rel { opacity: 1 !important; }
+  .feed-item .title { font-size: 10.5pt !important; line-height: 1.35; -webkit-line-clamp: unset !important; display: block !important; }
+  .feed-item .summary { font-size: 9.5pt !important; line-height: 1.45; -webkit-line-clamp: unset !important; display: block !important; }
+  .feed-item .meta { font-size: 8pt !important; }
+  /* Show the underlying URL after each item — clickable PDFs use anchors,
+     but printed paper needs the URL inline. */
+  .feed-item[data-url]::after {
+    content: " — " attr(data-url);
+    display: block;
+    margin-top: 4px;
+    font-size: 8pt;
+    color: var(--neutral);
+    word-break: break-all;
+    font-family: var(--font-mono);
+  }
+
+  /* Connection cards — full visibility, page-safe */
+  .conn-card {
+    background: #fff !important;
+    border: 1px solid #c5c9d2 !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+    margin-bottom: 8px !important;
+  }
+  .conn-theme { color: var(--navy) !important; }
+  .conn-rationale { color: var(--ink) !important; }
+
+  /* Confidence pills — borders only, no fills */
+  .conf-pill {
+    background: transparent !important;
+    border: 1px solid currentColor !important;
+  }
+
+  /* Headers should not get split from the content right below */
+  h2, h3, .label { page-break-after: avoid; }
+
+  /* Force browsers to render colors faithfully */
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+}
+
+/* LOADING SHIMMER */
+.shimmer {
+  background: linear-gradient(90deg, var(--bg) 0%, #F0EFE9 50%, var(--bg) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+  border-radius: 8px;
+}
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="container header-inner">
+    <div class="wordmark">
+      WHALE ROCK <span class="mark-line">BRAIN · ALT-DATA</span>
+    </div>
+    <div class="header-right">
+      <button class="icon-btn" id="btn-print" title="Print or save as PDF" aria-label="Print">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="6 9 6 2 18 2 18 9"></polyline>
+          <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+          <rect x="6" y="14" width="12" height="8"></rect>
+        </svg>
+      </button>
+      <button class="icon-btn" id="btn-cost" title="Cost & latency for the last refresh">$</button>
+      <button class="icon-btn" id="btn-help" title="What this is">?</button>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+
+  <!-- Print-only report header. Hidden on screen; shown when window.print() runs. -->
+  <section class="print-header" id="print-header" aria-hidden="true">
+    <div class="print-wordmark">WHALE ROCK BRAIN</div>
+    <div class="print-subtitle">Alt-data research snapshot</div>
+    <div class="print-meta-grid" id="print-meta-grid"></div>
+    <div class="print-rule"></div>
+  </section>
+
+  <section class="hero">
+    <h1>Get up to speed in 15 minutes.</h1>
+    <p>Cross-source alt-data synthesis for TMT names. Reddit, Hacker News, GitHub, and SEC filings — read together so you see what each one alone would miss.</p>
+    <div class="accent-rule"></div>
+  </section>
+
+  <section class="controls">
+    <label for="ticker-select">Ticker</label>
+    <div class="select-wrap">
+      <select id="ticker-select"></select>
+      <span class="select-chevron">&#x25BC;</span>
+    </div>
+    <label for="window-select" style="margin-left: 6px;">Window</label>
+    <div class="select-wrap">
+      <select id="window-select" title="How far back to search each source. EDGAR always returns the latest filings.">
+        <option value="1week">1 week</option>
+        <option value="1month" selected>1 month</option>
+        <option value="3months">3 months</option>
+        <option value="6months">6 months</option>
+        <option value="1year">1 year</option>
+      </select>
+      <span class="select-chevron">&#x25BC;</span>
+    </div>
+    <button class="btn-primary" id="btn-refresh">
+      <span id="refresh-label">Refresh data</span>
+    </button>
+    <span class="status-pill" id="status-pill"><span class="dot"></span><span class="text">No snapshot</span></span>
+  </section>
+
+  <div id="dashboard-region">
+    <div class="empty-state" id="empty-state">
+      <h3>Select a ticker and click Refresh.</h3>
+      <p>The first refresh pulls live data, summarizes each item, builds the Brain Summary, and surfaces cross-source connections. Expect 60-90 seconds on a cold start.</p>
+    </div>
+  </div>
+</main>
+
+<!-- Refresh overlay -->
+<div class="refresh-overlay" id="refresh-overlay">
+  <div class="refresh-card">
+    <div class="spinner"></div>
+    <div class="label">Refreshing</div>
+    <div class="stage" id="refresh-stage">Pulling sources...</div>
+    <div class="sub" id="refresh-sub">This typically takes 60-90 seconds.</div>
+  </div>
+</div>
+
+<!-- Chat dock -->
+<aside class="chat-dock collapsed" id="chat-dock">
+  <div class="chat-head" id="chat-head">
+    <span class="title">Ask the Brain</span>
+    <span class="arrow" id="chat-arrow">&#x25B2;</span>
+  </div>
+  <div class="chat-body">
+    <div class="chat-msgs" id="chat-msgs">
+      <div class="msg msg-system">Refresh a ticker, then ask a question about the data on the dashboard. Every answer cites the items it used.</div>
+    </div>
+    <form class="chat-form" id="chat-form" autocomplete="off">
+      <input type="text" id="chat-input" placeholder="e.g. What's the most non-consensus thing here?" disabled />
+      <button type="submit" id="chat-submit" disabled>Ask</button>
+    </form>
+  </div>
+</aside>
+
+<!-- Help modal -->
+<div class="modal-bg" id="modal-help">
+  <div class="modal">
+    <h2>How to use the Whale Rock Brain</h2>
+    <p>Cross-source alt-data synthesis for TMT names. Five minutes of reading, six sources of signal, every claim cited.</p>
+
+    <h3>Step 1 &mdash; Pick a ticker</h3>
+    <p>The dropdown is split into two groups. <strong>Case Study Tickers</strong> are the five names the Whale Rock team is actively working (AMD, SNDK, FROG, APP, KVYO). <strong>Other Examples</strong> are larger, broadly-followed names (MDB, NVDA, META, MSFT) included to show the system working across categories.</p>
+
+    <h3>Step 2 &mdash; Pick a window, then click Refresh</h3>
+    <p>The <strong>Window</strong> dropdown controls how far back each source searches. Default is <strong>1 month</strong>. For thin-coverage names (small caps, recent IPOs, niche product companies), bump it to 3 or 6 months for more material. SEC EDGAR always returns the latest filings regardless of window — they're authoritative anchors.</p>
+    <p>Refresh kicks off the live pipeline: six concurrent source pulls, per-item summarization with Sonnet 4.6, the Brain Summary synthesis, and the cross-source connection judge. A spinner shows the current stage. Cold start is roughly 60-90 seconds; subsequent refreshes of the same ticker are faster because already-summarized items are reused.</p>
+    <p>If a source column comes back thin, you'll see a <strong>"Try N-month window"</strong> button on it — one click refreshes with a wider window, no need to fiddle with the dropdown.</p>
+
+    <h3>Step 3 &mdash; Read the metrics strip</h3>
+    <p>Right under the controls, four cards show the last refresh's <strong>Duration</strong>, <strong>LLM Cost</strong>, <strong>Input Tokens</strong>, and <strong>Output Tokens</strong>. Click the <strong>$</strong> button in the header for the per-call breakdown table.</p>
+
+    <h3>Step 4 &mdash; Read the Brain Summary</h3>
+    <p>The navy card at the top is the headline read &mdash; what's changing, the non-consensus bear, the non-consensus bull. Every claim cites at least one source item id in square brackets, like <span class="cite cite-light">R-7f3a</span>. <strong>Click any citation chip</strong> to scroll the source feed to that exact item with a brief highlight flash.</p>
+
+    <h3>Step 5 &mdash; Scan the source feeds</h3>
+    <p>Six columns, one per source. Each item shows a one-line summary, a sentiment chip (bullish / bearish / neutral / mixed), a relevance score (1-10), and the item id. <strong>Click any item</strong> to open the original Reddit post, tweet, news article, GitHub issue, or SEC filing in a new tab.</p>
+    <p>The status row at the top of each column tells you what happened on the last fetch: <span style="color:var(--green);">ok: 23 items</span> means the source returned data; <span style="color:var(--amber);">rate-limited</span> or <span style="color:var(--amber);">skipped: X_BEARER_TOKEN not set</span> tells you why a column is empty.</p>
+
+    <h3>Step 6 &mdash; Look at the Connections</h3>
+    <p>Below the feeds. Each card is a cross-source link the system surfaced &mdash; for example, a Reddit migration thread paired with a GitHub release. Confidence is rated <strong>High</strong> / <strong>Medium</strong> by an LLM judge that filters out coincidental keyword overlap. Both ids in the connection are clickable.</p>
+
+    <h3>Step 7 &mdash; Ask the Brain (bottom right)</h3>
+    <p>Click the dock at the bottom-right to expand the chat. It answers questions <em>only from the items currently on screen</em>. If the data doesn't support an answer, it says so plainly &mdash; no fabrication. Citations in the answer are clickable, just like in the Brain Summary.</p>
+
+    <h3>What the system will not do</h3>
+    <ul>
+      <li>Use general world knowledge to answer questions in chat. If the items don't show it, the chat says so.</li>
+      <li>Surface low-confidence connections. The judge filters them out before they reach the UI.</li>
+      <li>Cite an item id that isn't in the feeds. The frontend cross-checks every citation against the actual items.</li>
+    </ul>
+
+    <h3>Bias notes</h3>
+    <p>Reddit skews retail. GitHub skews developer. X skews short-time-horizon. EDGAR is authoritative but lagged. The Brain flags evidence-thin claims explicitly &mdash; treat the dashboard as a starting point, not as a primary source.</p>
+
+    <div class="close-row">
+      <button class="btn-ghost" data-close-modal="modal-help">Got it</button>
+    </div>
+  </div>
+</div>
+
+<!-- Cost modal -->
+<div class="modal-bg" id="modal-cost">
+  <div class="modal">
+    <h2>Cost &amp; latency</h2>
+    <div id="cost-empty"><p>Refresh a ticker to see real per-call cost and latency.</p></div>
+    <div id="cost-detail" style="display:none;">
+      <div class="kpi-row">
+        <div class="kpi"><div class="lbl">Total cost</div><div class="val" id="kpi-cost">$0</div></div>
+        <div class="kpi"><div class="lbl">Duration</div><div class="val" id="kpi-dur">0.0s</div></div>
+        <div class="kpi"><div class="lbl">Input tok</div><div class="val" id="kpi-in">0</div></div>
+        <div class="kpi"><div class="lbl">Output tok</div><div class="val" id="kpi-out">0</div></div>
+      </div>
+      <h3>Per-call breakdown</h3>
+      <table>
+        <thead><tr><th>Label</th><th class="num">In</th><th class="num">Out</th><th class="num">$ </th><th class="num">s</th></tr></thead>
+        <tbody id="cost-tbody"></tbody>
+      </table>
+      <h3>Source status</h3>
+      <div id="cost-sources"></div>
+      <p style="margin-top:14px;font-size:0.78rem;color:var(--neutral);">Pricing modeled at Sonnet 4.6 list rates ($3/Mt input, $15/Mt output). Cache discounts not applied.</p>
+    </div>
+    <div class="close-row">
+      <button class="btn-ghost" data-close-modal="modal-cost">Close</button>
+    </div>
+  </div>
+</div>
+
+<footer class="footer-note container">
+  Whale Rock Brain &middot; alt-data prototype &middot; Sonnet 4.6 &middot; non-consensus signal across Reddit, HN, GitHub, EDGAR
+</footer>
+
+<script>
+// Display order in the UI. Backend order doesn't matter — this drives the columns.
+const SOURCES = [
+  { key: "reddit",     label: "Reddit" },
+  { key: "news",       label: "Industry News" },
+  { key: "github",     label: "GitHub" },
+  { key: "hackernews", label: "Hacker News" },
+  { key: "x",          label: "X (Twitter)" },
+  { key: "edgar",      label: "SEC EDGAR" },
+];
+
+const GROUP_LABELS = {
+  case_study: "Case Study Tickers",
+  examples:   "Other Examples",
+};
+
+const SENTIMENT_CLASS = {
+  bullish: "chip-bull",
+  bearish: "chip-bear",
+  neutral: "chip-neutral",
+  mixed:   "chip-mixed",
+};
+
+const WINDOW_LABELS = {
+  "1week":   "1 week",
+  "1month":  "1 month",
+  "3months": "3 months",
+  "6months": "6 months",
+  "1year":   "1 year",
+};
+
+// Maps a current window to the next-larger window for the "try wider" hint.
+const WIDER_WINDOW = {
+  "1week":   "1month",
+  "1month":  "3months",
+  "3months": "6months",
+  "6months": "1year",
+  "1year":   null,
+};
+
+const REFRESH_STAGES = [
+  "Pulling Reddit, Hacker News, GitHub, and SEC EDGAR...",
+  "Summarizing each item with Sonnet 4.6...",
+  "Synthesizing the Brain Summary...",
+  "Judging cross-source connections..."
+];
+
+const state = {
+  tickers: [],
+  current: null,
+  snapshot: null,
+  chatHistory: [],
+};
+
+function $(sel) { return document.querySelector(sel); }
+function $$(sel) { return Array.from(document.querySelectorAll(sel)); }
+
+function fmtAge(seconds) {
+  if (seconds == null) return "no snapshot";
+  if (seconds < 60) return Math.round(seconds) + "s ago";
+  if (seconds < 3600) return Math.round(seconds / 60) + " min ago";
+  if (seconds < 86400) return Math.round(seconds / 3600) + " h ago";
+  return Math.round(seconds / 86400) + " d ago";
+}
+
+function fmtDate(iso) {
+  if (!iso) return "";
+  try {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return "";
+    const m = d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    return m;
+  } catch (e) { return ""; }
+}
+
+function escapeHTML(s) {
+  return (s || "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+}
+
+function linkifyCitations(text, validIds, klass) {
+  if (!text) return "";
+  const safe = escapeHTML(text);
+  return safe.replace(/\[([A-Za-z]-[0-9a-f]{6})\]/g, (m, id) => {
+    if (!validIds.has(id)) return m;
+    return `<span class="cite ${klass||''}" data-cite="${id}">[${id}]</span>`;
+  });
+}
+
+async function loadTickers() {
+  const r = await fetch("/api/tickers");
+  const data = await r.json();
+  state.tickers = data.tickers;
+
+  const sel = $("#ticker-select");
+  sel.innerHTML = "";
+
+  // Bucket tickers by group, preserving the order in tickers.json.
+  const order = [];
+  const buckets = {};
+  data.tickers.forEach(t => {
+    const g = t.group || "case_study";
+    if (!(g in buckets)) { buckets[g] = []; order.push(g); }
+    buckets[g].push(t);
+  });
+
+  order.forEach(g => {
+    const og = document.createElement("optgroup");
+    og.label = GROUP_LABELS[g] || g;
+    buckets[g].forEach(t => {
+      const opt = document.createElement("option");
+      opt.value = t.ticker;
+      opt.textContent = `${t.ticker} — ${t.company_name}`;
+      og.appendChild(opt);
+    });
+    sel.appendChild(og);
+  });
+
+  state.current = data.tickers[0]?.ticker || null;
+  await loadDashboardOrEmpty();
+}
+
+async function loadDashboardOrEmpty() {
+  if (!state.current) return;
+  const r = await fetch("/api/dashboard/" + state.current);
+  if (r.status === 404) {
+    state.snapshot = null;
+    renderEmpty();
+    setStatusPill(null);
+  } else if (r.ok) {
+    state.snapshot = await r.json();
+    // Sync window selector to the snapshot's window so a re-refresh stays consistent.
+    if (state.snapshot.time_window) {
+      const sel = $("#window-select");
+      if (sel) sel.value = state.snapshot.time_window;
+    }
+    renderDashboard();
+    setStatusPill(state.snapshot.refreshed_at);
+  }
+}
+
+function fmtAbsoluteRefreshed(refreshedAt) {
+  // The server stores `refreshed_at` as a UTC datetime without a trailing Z.
+  // Treat it as UTC explicitly so the user's local time is correct.
+  const iso = refreshedAt.endsWith("Z") || refreshedAt.includes("+") ? refreshedAt : refreshedAt + "Z";
+  const dt = new Date(iso);
+  if (isNaN(dt.getTime())) return refreshedAt;
+  return dt.toLocaleString(undefined, {
+    year: "numeric", month: "short", day: "numeric",
+    hour: "numeric", minute: "2-digit",
+  });
+}
+
+function setStatusPill(refreshedAt) {
+  const pill = $("#status-pill");
+  const txt = pill.querySelector(".text");
+  if (!refreshedAt) {
+    pill.className = "status-pill empty";
+    txt.textContent = "Not refreshed yet";
+    pill.title = "";
+    return;
+  }
+  const iso = refreshedAt.endsWith("Z") || refreshedAt.includes("+") ? refreshedAt : refreshedAt + "Z";
+  const dt = new Date(iso);
+  const ageS = (Date.now() - dt.getTime()) / 1000;
+  pill.className = ageS > 86400 ? "status-pill stale" : "status-pill fresh";
+  // Show absolute date and time in the pill itself so analysts see exactly
+  // when the snapshot was generated.  Tooltip carries the relative age.
+  txt.textContent = "Refreshed " + fmtAbsoluteRefreshed(refreshedAt);
+  pill.title = fmtAge(ageS) + " (UTC stored, shown in your local time)";
+}
+
+function renderEmpty() {
+  $("#dashboard-region").innerHTML = `
+    <div class="empty-state">
+      <h3>No snapshot for ${escapeHTML(state.current)} yet.</h3>
+      <p>Click <strong>Refresh data</strong> to pull live items from Reddit, Hacker News, GitHub, and SEC EDGAR, summarize each, and build the Brain Summary. Sonnet 4.6 across the pipeline.</p>
+    </div>`;
+  // Disable chat
+  $("#chat-input").disabled = true;
+  $("#chat-submit").disabled = true;
+}
+
+function renderDashboard() {
+  const snap = state.snapshot;
+  if (!snap) { renderEmpty(); return; }
+
+  const validIds = new Set((snap.items || []).map(i => i.id));
+
+  const itemsBySource = {};
+  SOURCES.forEach(s => itemsBySource[s.key] = []);
+  (snap.items || []).forEach(it => {
+    if (itemsBySource[it.source]) itemsBySource[it.source].push(it);
+  });
+
+  // Brain card
+  let brainHTML = "";
+  if (snap.brain) {
+    const b = snap.brain;
+    const narrative = linkifyCitations(b.narrative, validIds, "")
+      .split(/\n\n+/).map(p => `<p>${p}</p>`).join("");
+    const changing = (b.whats_changing || [])
+      .map(x => `<li>${linkifyCitations(x, validIds, "")}</li>`).join("");
+    const watch = (b.watch_list || [])
+      .map(x => `<li>${escapeHTML(x)}</li>`).join("");
+    const bear = linkifyCitations(b.bear_case, validIds, "");
+    const bull = linkifyCitations(b.bull_case, validIds, "");
+    const positionRead = linkifyCitations(b.position_read || "", validIds, "");
+    const confidence = b.confidence || "Medium";
+    const confRationale = escapeHTML(b.confidence_rationale || "");
+    const positionBlock = (b.position_read && b.position_read.trim().length > 0)
+      ? `
+        <div class="position-read">
+          <div class="position-head">
+            <div class="label">Position read</div>
+            <div class="conf-row">
+              <span class="conf-pill conf-${confidence}">Confidence: ${confidence}</span>
+              ${confRationale ? `<span class="conf-rationale">${confRationale}</span>` : ""}
+            </div>
+          </div>
+          <div class="position-body">${positionRead}</div>
+        </div>`
+      : "";
+    const watchBlock = watch
+      ? `
+        <div class="brain-block">
+          <div class="label">What to watch</div>
+          <ul class="changing-list">${watch}</ul>
+        </div>`
+      : "";
+
+    const questions = (b.management_questions || [])
+      .map(q => `<li>${linkifyCitations(q, validIds, "")}</li>`).join("");
+    const questionsBlock = questions
+      ? `
+        <div class="mgmt-questions">
+          <div class="mgmt-q-head">
+            <div class="label">Questions for the next management call</div>
+            <div class="mgmt-q-count">${(b.management_questions || []).length} action item${(b.management_questions || []).length === 1 ? "" : "s"}</div>
+          </div>
+          <ol class="mgmt-q-list">${questions}</ol>
+        </div>`
+      : "";
+    brainHTML = `
+      <div class="brain-card">
+        <div class="brain-eyebrow">Brain Summary &middot; ${escapeHTML(snap.ticker)} &middot; ${escapeHTML(snap.company_name)}</div>
+        <div class="brain-headline">${escapeHTML(b.headline)}</div>
+        ${positionBlock}
+        <div class="brain-narrative">${narrative}</div>
+        <div class="brain-grid">
+          <div class="brain-block">
+            <div class="label">What's changing</div>
+            <ul class="changing-list">${changing}</ul>
+          </div>
+          ${watchBlock}
+          <div class="brain-block">
+            <div class="label">Non-consensus bear</div>
+            <div class="body">${bear}</div>
+          </div>
+          <div class="brain-block">
+            <div class="label">Non-consensus bull</div>
+            <div class="body">${bull}</div>
+          </div>
+        </div>
+        ${questionsBlock}
+      </div>`;
+  } else {
+    brainHTML = `
+      <div class="empty-state">
+        <h3>Brain summary unavailable</h3>
+        <p>The synthesizer didn&apos;t produce a summary on this run. Try refreshing again — usually means a transient model error or zero items returned across all sources.</p>
+      </div>`;
+  }
+
+  // Source columns
+  const currentWindow = snap.time_window || "1month";
+  const widerWindow = WIDER_WINDOW[currentWindow];  // null if already at 1 year
+  const feedsHTML = SOURCES.map(s => {
+    const items = itemsBySource[s.key] || [];
+    const status = (snap.source_status || {})[s.key] || "no status";
+    const isErr = status.startsWith("failed") || status.startsWith("rate-limited");
+    const isThin = items.length < 3 && s.key !== "edgar"; // EDGAR is fine with few items
+
+    let bodyHTML;
+    if (items.length === 0) {
+      const hint = (isThin && widerWindow)
+        ? `<button class="btn-thin-wider" data-wider="${widerWindow}">Try ${WINDOW_LABELS[widerWindow]} window</button>`
+        : "";
+      bodyHTML = `<div class="feed-empty">
+        <div class="feed-empty-msg">No items in this window.</div>
+        ${hint}
+      </div>`;
+    } else {
+      bodyHTML = items.map(it => {
+        const sentClass = SENTIMENT_CLASS[it.sentiment] || "chip-neutral";
+        const sentChip = it.sentiment ? `<span class="chip ${sentClass}">${it.sentiment}</span>` : "";
+        const relChip = it.relevance != null ? `<span class="chip chip-rel">rel ${it.relevance}/10</span>` : "";
+        const idChip = `<span class="chip chip-id">${it.id}</span>`;
+        const date = fmtDate(it.published_at);
+        const lowRel = (it.relevance || 0) < 3 ? "low-rel" : "";
+        return `
+          <div class="feed-item ${lowRel}" data-item-id="${it.id}" data-url="${escapeHTML(it.url)}">
+            <div class="title">${escapeHTML(it.title)}</div>
+            <div class="summary">${escapeHTML(it.summary || "")}</div>
+            <div class="meta">${idChip}${sentChip}${relChip}${date ? `<span>${date}</span>` : ""}</div>
+          </div>`;
+      }).join("");
+      // Thin column hint at the bottom.
+      if (isThin && widerWindow) {
+        bodyHTML += `<div class="feed-hint">
+          Only ${items.length} item${items.length === 1 ? "" : "s"} in this window.
+          <button class="btn-thin-wider" data-wider="${widerWindow}">Try ${WINDOW_LABELS[widerWindow]} window</button>
+        </div>`;
+      }
+    }
+
+    return `
+      <div class="feed-col" data-source="${s.key}">
+        <div class="feed-head">
+          <h3>${s.label}</h3>
+          <span class="count">${items.length}</span>
+        </div>
+        <div class="feed-status ${isErr ? "error" : ""}">${escapeHTML(status)}</div>
+        <div class="feed-list">${bodyHTML}</div>
+      </div>`;
+  }).join("");
+
+  // Connections
+  let connsHTML = "";
+  const conns = snap.connections || [];
+  if (conns.length === 0) {
+    connsHTML = `<div class="empty-state"><h3>No high-confidence connections this run.</h3><p>The judge passes only Medium and High confidence links. Low-similarity pairs and coincidental keyword matches are filtered out.</p></div>`;
+  } else {
+    connsHTML = `<div class="connections-list">` + conns.map(c => {
+      const ids = (c.item_ids || []).map(id => `<span class="cite cite-light" data-cite="${id}">[${id}]</span>`).join(" ");
+      return `
+        <div class="conn-card">
+          <div class="conn-head">
+            <div class="conn-theme">${escapeHTML(c.theme)}</div>
+            <span class="conf-pill conf-${c.confidence}">${c.confidence}</span>
+          </div>
+          <div class="conn-rationale">${escapeHTML(c.rationale)}</div>
+          <div class="conn-meta">${ids}<span>similarity ${(c.similarity || 0).toFixed(2)}</span></div>
+        </div>`;
+    }).join("") + `</div>`;
+  }
+
+  // Inline metrics strip — Duration / Cost / Input / Output tokens for the last refresh.
+  let metricsHTML = "";
+  if (snap.last_run_metrics) {
+    const rm = snap.last_run_metrics;
+    const totalCost = (rm.calls || []).reduce((a, c) => a + (c.cost_usd || 0), 0);
+    const totalIn = (rm.calls || []).reduce((a, c) => a + (c.input_tokens || 0), 0);
+    const totalOut = (rm.calls || []).reduce((a, c) => a + (c.output_tokens || 0), 0);
+    const numCalls = (rm.calls || []).length;
+    metricsHTML = `
+      <div class="metrics-strip">
+        <div class="metric">
+          <div class="metric-label">Duration</div>
+          <div class="metric-value">${(rm.duration_seconds || 0).toFixed(1)}s</div>
+          <div class="metric-sub">${numCalls} LLM calls</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">LLM Cost</div>
+          <div class="metric-value">$${totalCost.toFixed(4)}</div>
+          <div class="metric-sub">Sonnet 4.6 list rate</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Input Tokens</div>
+          <div class="metric-value">${totalIn.toLocaleString()}</div>
+          <div class="metric-sub">across all calls</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Output Tokens</div>
+          <div class="metric-value">${totalOut.toLocaleString()}</div>
+          <div class="metric-sub">across all calls</div>
+        </div>
+      </div>`;
+  }
+
+  $("#dashboard-region").innerHTML = `
+    ${metricsHTML}
+    ${brainHTML}
+    <div class="section-head"><h2>Source feeds</h2><div class="muted">${(snap.items || []).length} items total &middot; ${WINDOW_LABELS[currentWindow] || currentWindow} window &middot; refreshed ${fmtAbsoluteRefreshed(snap.refreshed_at)}</div></div>
+    <div class="feeds">${feedsHTML}</div>
+    <div class="section-head"><h2>Connections</h2><div class="muted">cross-source links judged Medium or High confidence</div></div>
+    ${connsHTML}
+  `;
+
+  // Wire citations
+  $$(".cite").forEach(el => {
+    el.addEventListener("click", () => {
+      const id = el.getAttribute("data-cite");
+      const target = document.querySelector(`.feed-item[data-item-id="${id}"]`);
+      if (target) {
+        target.scrollIntoView({ behavior: "smooth", block: "center" });
+        target.classList.remove("flash");
+        // force reflow
+        void target.offsetWidth;
+        target.classList.add("flash");
+      }
+    });
+  });
+
+  // Wire feed items (open original link in new tab)
+  $$(".feed-item[data-url]").forEach(el => {
+    el.addEventListener("click", () => {
+      const url = el.getAttribute("data-url");
+      if (url) window.open(url, "_blank", "noopener");
+    });
+  });
+
+  // Wire "try wider window" buttons — bumps the dropdown and refreshes.
+  $$(".btn-thin-wider").forEach(btn => {
+    btn.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      const wider = btn.getAttribute("data-wider");
+      if (!wider) return;
+      const sel = $("#window-select");
+      if (sel) sel.value = wider;
+      refreshTicker();
+    });
+  });
+
+  // Enable chat
+  $("#chat-input").disabled = false;
+  $("#chat-submit").disabled = false;
+
+  // Keep the print-only header in sync with the rendered snapshot.
+  populatePrintHeader();
+}
+
+async function refreshTicker() {
+  if (!state.current) return;
+  const overlay = $("#refresh-overlay");
+  const stage = $("#refresh-stage");
+  const btn = $("#btn-refresh");
+  btn.disabled = true;
+  overlay.classList.add("show");
+
+  // Cycle stage labels for the user.
+  let i = 0;
+  stage.textContent = REFRESH_STAGES[0];
+  const cycler = setInterval(() => {
+    i = (i + 1) % REFRESH_STAGES.length;
+    stage.textContent = REFRESH_STAGES[i];
+  }, 12000);
+
+  try {
+    const window = $("#window-select").value || "1month";
+    const r = await fetch(`/api/refresh/${state.current}?window=${encodeURIComponent(window)}`, { method: "POST" });
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({}));
+      alert("Refresh failed: " + (err.detail || r.status));
+    } else {
+      state.snapshot = await r.json();
+      renderDashboard();
+      setStatusPill(state.snapshot.refreshed_at);
+      state.chatHistory = [];
+      $("#chat-msgs").innerHTML = `<div class="msg msg-system">Snapshot refreshed. Ask anything about the data on screen.</div>`;
+    }
+  } catch (e) {
+    alert("Refresh error: " + e.message);
+  } finally {
+    clearInterval(cycler);
+    overlay.classList.remove("show");
+    btn.disabled = false;
+  }
+}
+
+async function sendChat(question) {
+  if (!state.snapshot || !question.trim()) return;
+  const msgs = $("#chat-msgs");
+  const userDiv = document.createElement("div");
+  userDiv.className = "msg msg-user";
+  userDiv.textContent = question;
+  msgs.appendChild(userDiv);
+
+  const thinking = document.createElement("div");
+  thinking.className = "msg msg-system";
+  thinking.textContent = "thinking...";
+  msgs.appendChild(thinking);
+  msgs.scrollTop = msgs.scrollHeight;
+
+  $("#chat-submit").disabled = true;
+  $("#chat-input").disabled = true;
+
+  try {
+    const r = await fetch("/api/chat", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        ticker: state.current,
+        question,
+        history: state.chatHistory,
+      }),
+    });
+    thinking.remove();
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({}));
+      const errDiv = document.createElement("div");
+      errDiv.className = "msg msg-system";
+      errDiv.textContent = "Error: " + (err.detail || r.status);
+      msgs.appendChild(errDiv);
+    } else {
+      const data = await r.json();
+      const validIds = new Set((state.snapshot.items || []).map(i => i.id));
+      const aDiv = document.createElement("div");
+      aDiv.className = "msg msg-assistant";
+      aDiv.innerHTML = linkifyCitations(data.answer, validIds, "cite-light");
+      msgs.appendChild(aDiv);
+      // Wire newly-rendered citations
+      aDiv.querySelectorAll(".cite").forEach(el => {
+        el.addEventListener("click", () => {
+          const id = el.getAttribute("data-cite");
+          const t = document.querySelector(`.feed-item[data-item-id="${id}"]`);
+          if (t) {
+            t.scrollIntoView({ behavior: "smooth", block: "center" });
+            t.classList.remove("flash");
+            void t.offsetWidth;
+            t.classList.add("flash");
+          }
+        });
+      });
+      state.chatHistory.push({ role: "user", content: question });
+      state.chatHistory.push({ role: "assistant", content: data.answer, cited_ids: data.cited_ids || [] });
+    }
+  } catch (e) {
+    thinking.remove();
+    const errDiv = document.createElement("div");
+    errDiv.className = "msg msg-system";
+    errDiv.textContent = "Network error: " + e.message;
+    msgs.appendChild(errDiv);
+  } finally {
+    $("#chat-submit").disabled = false;
+    $("#chat-input").disabled = false;
+    $("#chat-input").value = "";
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+}
+
+// Build a fully self-contained printable HTML document containing only the
+// Brain Summary, then open it in a new window and trigger the print dialog.
+// This is bulletproof: source feeds and connections aren't even in the DOM,
+// so they cannot leak into the printed output regardless of browser quirks.
+function openPrintableBrain(snap) {
+  if (!snap || !snap.brain) {
+    alert("No Brain Summary available — refresh a ticker first.");
+    return;
+  }
+  const html = buildPrintableBrainHTML(snap);
+  const w = window.open("", "_blank", "width=920,height=1200");
+  if (!w) {
+    alert("Popup was blocked. Please allow popups for this site to print.");
+    return;
+  }
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+  // Wait for the new doc to render before triggering print.
+  w.onload = () => {
+    setTimeout(() => {
+      try { w.focus(); w.print(); } catch (e) { /* user can hit Ctrl+P */ }
+    }, 200);
+  };
+}
+
+function buildPrintableBrainHTML(snap) {
+  const validIds = new Set((snap.items || []).map(i => i.id));
+  const b = snap.brain;
+  const refreshedStr = fmtAbsoluteRefreshed(snap.refreshed_at);
+  const rm = snap.last_run_metrics || { calls: [], duration_seconds: 0 };
+  const totalCost = (rm.calls || []).reduce((a, c) => a + (c.cost_usd || 0), 0);
+  const itemCount = (snap.items || []).length;
+  const conn = (snap.connections || []).length;
+  const winLabel = WINDOW_LABELS[snap.time_window || "1month"] || (snap.time_window || "1 month");
+
+  // Local linkifier — citations render as static chips (no scroll target in this doc).
+  const linkify = (text) => {
+    return escapeHTML(text || "").replace(/\[([A-Za-z]-[0-9a-f]{6})\]/g, (m, id) => {
+      if (!validIds.has(id)) return m;
+      return `<span class="cite">[${id}]</span>`;
+    });
+  };
+
+  const narrative = linkify(b.narrative).split(/\n\n+/).map(p => `<p>${p}</p>`).join("");
+  const changing = (b.whats_changing || []).map(x => `<li>${linkify(x)}</li>`).join("");
+  const watch = (b.watch_list || []).map(x => `<li>${escapeHTML(x)}</li>`).join("");
+  const bear = linkify(b.bear_case);
+  const bull = linkify(b.bull_case);
+  const positionRead = linkify(b.position_read || "");
+  const confidence = b.confidence || "Medium";
+  const confRationale = escapeHTML(b.confidence_rationale || "");
+  const questions = (b.management_questions || []).map(q => `<li>${linkify(q)}</li>`).join("");
+  const qCount = (b.management_questions || []).length;
+
+  const positionBlock = (b.position_read && b.position_read.trim().length > 0) ? `
+    <div class="position-read">
+      <div class="pr-head">
+        <div class="label">Position read</div>
+        <div class="conf-row">
+          <span class="conf-pill conf-${confidence}">Confidence: ${confidence}</span>
+          ${confRationale ? `<span class="conf-rationale">${confRationale}</span>` : ""}
+        </div>
+      </div>
+      <div class="pr-body">${positionRead}</div>
+    </div>` : "";
+
+  const watchBlock = watch ? `
+    <div class="block">
+      <span class="label">What to watch</span>
+      <ul class="changing-list">${watch}</ul>
+    </div>` : "";
+
+  const questionsBlock = questions ? `
+    <div class="mgmt">
+      <div class="mgmt-head">
+        <div class="label">Questions for the next management call</div>
+        <div class="mgmt-count">${qCount} action item${qCount === 1 ? "" : "s"}</div>
+      </div>
+      <ol class="mgmt-list">${questions}</ol>
+    </div>` : "";
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Whale Rock Brain — ${escapeHTML(snap.ticker)} ${escapeHTML(snap.company_name)}</title>
+<style>
+  @page { size: Letter; margin: 0.6in; }
+  :root {
+    --navy: #0B2545; --ink: #0A1628; --ink-2: #4A5468;
+    --gold: #C8A45C; --neutral: #5A6478;
+    --green: #1B7B47; --amber: #B8500F; --gray: #5A6478;
+    --border: #c5c9d2;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", sans-serif;
+    color: var(--ink); line-height: 1.5; font-size: 11pt;
+    background: white; padding: 32px 40px;
+  }
+  @media print { body { padding: 0; } }
+
+  .report-header { margin-bottom: 22px; }
+  .wordmark {
+    font-family: "Iowan Old Style", Georgia, "Times New Roman", serif;
+    font-size: 18pt; font-weight: 600; color: var(--navy);
+    letter-spacing: 0.02em;
+  }
+  .subtitle {
+    font-size: 9pt; color: var(--neutral); letter-spacing: 0.06em;
+    text-transform: uppercase; margin: 2px 0 12px;
+  }
+  .meta-grid {
+    display: grid; grid-template-columns: max-content 1fr;
+    gap: 4px 14px; font-size: 10pt;
+  }
+  .meta-row { display: contents; }
+  .meta-row .k {
+    font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--neutral); font-weight: 600; align-self: center;
+  }
+  .meta-row .v { color: var(--ink); }
+  .rule { border-top: 1.5px solid var(--navy); margin: 14px 0 18px; }
+
+  .brain {
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--navy);
+    border-radius: 6px;
+    padding: 18px 22px;
+    page-break-inside: avoid;
+  }
+  .eyebrow {
+    font-size: 8pt; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--gold); font-weight: 700; margin-bottom: 8px;
+  }
+  .headline {
+    font-family: "Iowan Old Style", Georgia, "Times New Roman", serif;
+    font-size: 16pt; line-height: 1.3;
+    color: var(--navy); font-weight: 600; margin-bottom: 12px;
+  }
+
+  .position-read {
+    background: #FBF5E6;
+    border: 1px solid #d8c08a;
+    border-left: 3px solid var(--gold);
+    border-radius: 6px;
+    padding: 12px 16px; margin: 14px 0;
+    page-break-inside: avoid;
+  }
+  .pr-head {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+    gap: 10px; margin-bottom: 8px;
+  }
+  .conf-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+  .label {
+    font-size: 7.5pt; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--navy); font-weight: 700; display: block;
+  }
+  .conf-pill {
+    background: #fff;
+    border: 1.5px solid currentColor;
+    font-size: 8pt; font-weight: 700; letter-spacing: 0.08em;
+    padding: 3px 10px; border-radius: 999px; text-transform: uppercase;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .conf-pill::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%;
+    background: currentColor; display: inline-block;
+  }
+  .conf-pill.conf-High { color: var(--green); }
+  .conf-pill.conf-Medium { color: var(--amber); }
+  .conf-pill.conf-Low { color: var(--gray); }
+  .conf-rationale {
+    font-size: 8pt; color: var(--ink-2); font-style: italic;
+  }
+  .pr-body { font-size: 10.5pt; line-height: 1.6; color: var(--ink); }
+
+  .narrative { margin: 12px 0; }
+  .narrative p + p { margin-top: 8px; }
+
+  .grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px 18px;
+    margin-top: 16px; padding-top: 14px;
+    border-top: 1px solid #e8eaee;
+  }
+  .block .label { margin-bottom: 6px; }
+  .block .body { font-size: 10pt; line-height: 1.55; color: var(--ink); }
+  .changing-list { list-style: none; padding: 0; margin: 0; }
+  .changing-list li {
+    font-size: 10pt; padding: 5px 0;
+    border-bottom: 1px solid #e8eaee;
+    line-height: 1.5;
+  }
+  .changing-list li:last-child { border-bottom: none; }
+
+  .mgmt {
+    background: #FBF5E6;
+    border: 1px solid #d8c08a;
+    border-left: 3px solid var(--gold);
+    border-radius: 6px;
+    padding: 14px 18px;
+    margin-top: 18px;
+    page-break-inside: avoid;
+  }
+  .mgmt-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    flex-wrap: wrap; gap: 8px; margin-bottom: 10px;
+  }
+  .mgmt-count {
+    font-size: 8.5pt; color: var(--ink-2); font-style: italic;
+    letter-spacing: 0.04em;
+  }
+  .mgmt-list { list-style: none; padding: 0; margin: 0; counter-reset: mq; }
+  .mgmt-list li {
+    position: relative;
+    padding: 9px 0 9px 32px;
+    font-size: 10pt; line-height: 1.55;
+    counter-increment: mq;
+    border-bottom: 1px solid #e0d4b3;
+    color: var(--ink);
+  }
+  .mgmt-list li:last-child { border-bottom: none; }
+  .mgmt-list li::before {
+    content: counter(mq);
+    position: absolute; left: 0; top: 9px;
+    width: 22px; height: 22px;
+    background: var(--navy); color: #fff;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 8.5pt; font-weight: 700;
+  }
+
+  .cite {
+    display: inline-block;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 8.5pt;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--navy);
+    padding: 0 5px; border-radius: 3px;
+    margin: 0 1px;
+  }
+
+  .footer {
+    margin-top: 22px; padding-top: 8px;
+    font-size: 8pt; color: var(--neutral);
+    border-top: 1px solid #e8eaee;
+  }
+
+  /* Floating action bar that lets the user retry print. Hidden in print itself. */
+  .actions {
+    position: fixed; top: 16px; right: 16px;
+    display: flex; gap: 8px; z-index: 1000;
+  }
+  .actions button {
+    font-family: inherit; font-size: 0.82rem; font-weight: 600;
+    background: var(--navy); color: #fff; border: 0;
+    padding: 8px 14px; border-radius: 8px;
+    cursor: pointer;
+  }
+  .actions button.secondary {
+    background: #fff; color: var(--navy);
+    border: 1px solid var(--border);
+  }
+  @media print { .actions { display: none !important; } }
+</style>
+</head>
+<body>
+  <div class="actions">
+    <button onclick="window.print()">Print / Save as PDF</button>
+    <button class="secondary" onclick="window.close()">Close</button>
+  </div>
+
+  <header class="report-header">
+    <div class="wordmark">WHALE ROCK BRAIN</div>
+    <div class="subtitle">Alt-data research snapshot</div>
+    <div class="meta-grid">
+      <div class="meta-row"><span class="k">Ticker</span><span class="v">${escapeHTML(snap.ticker)} &middot; ${escapeHTML(snap.company_name)}</span></div>
+      <div class="meta-row"><span class="k">Generated</span><span class="v">${refreshedStr}</span></div>
+      <div class="meta-row"><span class="k">Time window</span><span class="v">${winLabel}</span></div>
+      <div class="meta-row"><span class="k">Sources</span><span class="v">${itemCount} items &middot; ${conn} connection${conn === 1 ? "" : "s"}</span></div>
+      <div class="meta-row"><span class="k">LLM cost</span><span class="v">$${totalCost.toFixed(4)} &middot; ${(rm.duration_seconds || 0).toFixed(1)}s &middot; Sonnet 4.6</span></div>
+    </div>
+    <div class="rule"></div>
+  </header>
+
+  <main class="brain">
+    <div class="eyebrow">Brain Summary &middot; ${escapeHTML(snap.ticker)} &middot; ${escapeHTML(snap.company_name)}</div>
+    <div class="headline">${escapeHTML(b.headline || "")}</div>
+    ${positionBlock}
+    <div class="narrative">${narrative}</div>
+    <div class="grid">
+      <div class="block">
+        <span class="label">What's changing</span>
+        <ul class="changing-list">${changing}</ul>
+      </div>
+      ${watchBlock}
+      <div class="block">
+        <span class="label">Non-consensus bear</span>
+        <div class="body">${bear}</div>
+      </div>
+      <div class="block">
+        <span class="label">Non-consensus bull</span>
+        <div class="body">${bull}</div>
+      </div>
+    </div>
+    ${questionsBlock}
+  </main>
+
+  <div class="footer">
+    Whale Rock Brain &middot; alt-data prototype &middot; Sonnet 4.6 across Reddit, Industry News, GitHub, Hacker News, X, and SEC EDGAR
+  </div>
+</body>
+</html>`;
+}
+
+function populatePrintHeader() {
+  const snap = state.snapshot;
+  const grid = $("#print-meta-grid");
+  if (!snap || !grid) return;
+  const refreshedStr = fmtAbsoluteRefreshed(snap.refreshed_at);
+  const rm = snap.last_run_metrics || { calls: [], duration_seconds: 0 };
+  const totalCost = (rm.calls || []).reduce((a, c) => a + (c.cost_usd || 0), 0);
+  const itemCount = (snap.items || []).length;
+  const conn = (snap.connections || []).length;
+  const winLabel = WINDOW_LABELS[snap.time_window || "1month"] || (snap.time_window || "1 month");
+  grid.innerHTML = `
+    <div class="print-meta-row"><span class="k">Ticker</span><span class="v">${escapeHTML(snap.ticker)} &middot; ${escapeHTML(snap.company_name)}</span></div>
+    <div class="print-meta-row"><span class="k">Generated</span><span class="v">${refreshedStr}</span></div>
+    <div class="print-meta-row"><span class="k">Time window</span><span class="v">${winLabel}</span></div>
+    <div class="print-meta-row"><span class="k">Sources</span><span class="v">${itemCount} items &middot; ${conn} connection${conn === 1 ? "" : "s"}</span></div>
+    <div class="print-meta-row"><span class="k">LLM cost</span><span class="v">$${totalCost.toFixed(4)} &middot; ${(rm.duration_seconds || 0).toFixed(1)}s &middot; Sonnet 4.6</span></div>
+  `;
+}
+
+function openCostModal() {
+  const snap = state.snapshot;
+  const m = $("#modal-cost");
+  if (!snap || !snap.last_run_metrics) {
+    $("#cost-empty").style.display = "";
+    $("#cost-detail").style.display = "none";
+  } else {
+    const rm = snap.last_run_metrics;
+    const totalCost = (rm.calls || []).reduce((a, c) => a + (c.cost_usd || 0), 0);
+    const totalIn = (rm.calls || []).reduce((a, c) => a + (c.input_tokens || 0), 0);
+    const totalOut = (rm.calls || []).reduce((a, c) => a + (c.output_tokens || 0), 0);
+    $("#kpi-cost").textContent = "$" + totalCost.toFixed(4);
+    $("#kpi-dur").textContent = (rm.duration_seconds || 0).toFixed(1) + "s";
+    $("#kpi-in").textContent = totalIn.toLocaleString();
+    $("#kpi-out").textContent = totalOut.toLocaleString();
+    $("#cost-tbody").innerHTML = (rm.calls || []).map(c => `
+      <tr>
+        <td><code style="font-size:0.78rem;color:var(--ink-2);">${escapeHTML(c.label)}</code></td>
+        <td class="num">${c.input_tokens.toLocaleString()}</td>
+        <td class="num">${c.output_tokens.toLocaleString()}</td>
+        <td class="num">$${(c.cost_usd || 0).toFixed(5)}</td>
+        <td class="num">${(c.duration_seconds || 0).toFixed(2)}</td>
+      </tr>`).join("");
+    const ss = snap.source_status || {};
+    $("#cost-sources").innerHTML = SOURCES.map(s => {
+      const v = ss[s.key] || "no status";
+      const err = v.startsWith("failed") || v.startsWith("rate-limited");
+      return `<div class="src-status-row ${err ? "err" : ""}"><span class="name">${s.label}</span><span class="val">${escapeHTML(v)}</span></div>`;
+    }).join("");
+    $("#cost-empty").style.display = "none";
+    $("#cost-detail").style.display = "";
+  }
+  m.classList.add("show");
+}
+
+// ---------- Wire up ----------
+window.addEventListener("DOMContentLoaded", async () => {
+  await loadTickers();
+
+  $("#ticker-select").addEventListener("change", async (e) => {
+    state.current = e.target.value;
+    state.chatHistory = [];
+    $("#chat-msgs").innerHTML = `<div class="msg msg-system">Switched to ${state.current}. Refresh to update the dashboard.</div>`;
+    await loadDashboardOrEmpty();
+  });
+
+  $("#btn-refresh").addEventListener("click", refreshTicker);
+
+  $("#btn-help").addEventListener("click", () => $("#modal-help").classList.add("show"));
+  $("#btn-cost").addEventListener("click", openCostModal);
+  $("#btn-print").addEventListener("click", () => {
+    if (!state.snapshot) {
+      alert("Refresh a ticker first — there's nothing to print yet.");
+      return;
+    }
+    openPrintableBrain(state.snapshot);
+  });
+  $$("[data-close-modal]").forEach(el => {
+    el.addEventListener("click", () => {
+      const id = el.getAttribute("data-close-modal");
+      document.getElementById(id).classList.remove("show");
+    });
+  });
+  $$(".modal-bg").forEach(el => {
+    el.addEventListener("click", (e) => {
+      if (e.target === el) el.classList.remove("show");
+    });
+  });
+
+  // Chat dock toggle
+  const dock = $("#chat-dock");
+  $("#chat-head").addEventListener("click", () => {
+    dock.classList.toggle("collapsed");
+    $("#chat-arrow").innerHTML = dock.classList.contains("collapsed") ? "&#x25B2;" : "&#x25BC;";
+  });
+  $("#chat-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const q = $("#chat-input").value.trim();
+    if (q) sendChat(q);
+  });
+});
+</script>
+</body>
+</html>
