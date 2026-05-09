@@ -331,5 +331,3 @@ In either case, the only file you'd change in the codebase is `storage.py`, swap
 **Can I run this against a private list of tickers?** Yes. Add them to `data/tickers.json`. Nothing in the dashboard or the pipeline cares which tickers are in the file.
 
 **What if the Brain finds nothing interesting?** It tells you. The headline will say something like "Limited material, mostly press releases and tangential mentions." The confidence pill will be Low. The system is built to admit when the data is thin, not to pad a summary to feel productive.
-
-**Where do I send feedback?** This was built for the Whale Rock case study. The DESIGN.md doc covers the technical reasoning for every choice. Comments and PRs welcome.
