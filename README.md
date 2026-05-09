@@ -2,7 +2,7 @@
 
 A research dashboard for getting up to speed on a stock in 15 minutes, using sources Wall Street isn't reading well.
 
-You type a ticker. The system pulls fresh material from six places (Reddit, industry news, GitHub, Hacker News, X, and SEC filings), reads each piece, then writes a short, opinionated summary about what's actually going on. Every claim links back to the source. There's a chat box you can ask follow-up questions in. And there's a print button that produces a clean PDF you can forward to a PM.
+You pick a ticker. The system pulls fresh material from six places (Reddit, industry news, GitHub, Hacker News, X, and SEC filings), reads each piece, then writes a short, opinionated summary about what's actually going on. Every claim links back to the source. There's a chat box you can ask follow-up questions in. And there's a print button that produces a clean PDF you can forward to a PM.
 
 ![Python](https://img.shields.io/badge/python-3.11+-blue.svg)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg)
