@@ -42,15 +42,13 @@ The Reddit endpoint I use is the public `.json` API. I send a browser-class User
 
 One non-obvious constraint on HN's Algolia API: the `query` parameter does not support boolean OR. Passing `query="JFrog" OR "Artifactory"` causes Algolia to treat `OR` as a literal word and AND-match every term, which returns zero hits. The implementation uses `query=JFrog` (the most distinctive single term) plus `optionalWords=Artifactory FROG` as a separate parameter, so the additional aliases boost ranking without becoming required match terms.
 
-**X (Twitter).** The v2 `/tweets/search/recent` endpoint. This is the only paid source, because X has no free tier suitable for the volume this needs. Basic at $200 per month gets 10,000 tweets monthly, which covers about 10 tickers refreshed hourly. Pro at $5,000 per month gets the full archive. Outside the case study budget, but the integration is built and ready: set `X_BEARER_TOKEN` and the column populates.
+**X (Twitter).** The v2 `/tweets/search/recent` endpoint. This is the one paid source in the stack, because X has no free tier suitable for the volume this needs. Basic at $200 per month covers 10,000 tweets monthly, which is sufficient for ~10 tickers refreshed hourly. Pro at $5,000 per month covers the full archive for back-testing. The implementation runs against the live X v2 API: with `X_BEARER_TOKEN` configured in `.env`, the X column populates alongside the other five sources on every refresh.
 
 The valuable thing about X is real-time sentiment with author weighting. A tweet from a 200,000-follower analyst account is qualitatively different from a tweet from a 50-follower meme account, even if they say the same words. I pull up to 50 tweets per refresh and run a regex-based pre-filter that drops obvious FOMO and pump content (more on that in Section 6) before any LLM call. Verified or 50K-plus follower accounts bypass the filter, because a serious analyst saying "$200 target" is signal even if it shares vocabulary with retail noise.
 
 **SEC EDGAR.** The submissions JSON API. Recent 8-K, 10-Q, 10-K, Form 4, and 13F filings. The CIK is resolved dynamically from `company_tickers.json` so no CIKs are hardcoded. EDGAR plays a different role from the other five sources: it's the authoritative anchor. Every other source is unstructured opinion from someone with an agenda. EDGAR is what the company actually told the SEC. The Brain Summary is built to compare softer signals against this anchor. Critically, EDGAR ignores the user's time window setting and always returns the most recent filings. The reasoning: the analyst always wants the latest 10-Q, regardless of whether they're studying the last month or the last year of alt-data.
 
 ### What I considered and rejected
-
-**Twitter (free tier).** No free tier suitable for this. X's pricing forces the choice. Listed in the roadmap once a license is paid for.
 
 **Glassdoor and Levels.fyi.** High-signal sources for catching sales reorgs, layoffs, and compensation shifts. No public API. Scraping them violates ToS. To use these properly in production would require licensing a vendor feed (Revelio Labs, Thinknum, Linkup). Costs are in the high four-figures monthly. Listed as the highest-priority roadmap item because the alpha is real.
 
@@ -606,7 +604,7 @@ The roadmap has a "knowledge mode" toggle that opens the door to general knowled
 
 ### Data licensing
 
-All current sources are public APIs (with X gated behind a paid tier the integration plugs into seamlessly). Production additions (Glassdoor, App Store, podcasts) require licensed feeds. Vendor cost at production scope is in the high four-figures monthly. Real money, but the brief explicitly calls out these as the sources where alpha lives, and the alpha justifies the spend for a TMT shop.
+All current sources are public APIs, with X running on a paid X API tier. Production additions (Glassdoor, App Store, podcasts) require additional licensed feeds. Vendor cost at production scope is in the high four-figures monthly. Real money, but the brief explicitly calls out these as the sources where alpha lives, and the alpha justifies the spend for a TMT shop.
 
 ### Scaling risks
 
